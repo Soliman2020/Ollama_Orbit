@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ollama Usage Dashboard</title>
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+  <style>
+    :root, [data-theme="light"] {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      --space-20: 5rem;
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --radius-full: 9999px;
+      --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      --color-bg: #f7f6f2;
+      --color-surface: #f9f8f5;
+      --color-surface-2: #fbfbf9;
+      --color-surface-offset: #f3f0ec;
+      --color-surface-offset-2: #edeae5;
+      --color-surface-dynamic: #e6e4df;
+      --color-divider: #dcd9d5;
+      --color-border: #d4d1ca;
+      --color-text: #28251d;
+      --color-text-muted: #6f6c65;
+      --color-text-faint: #a09d97;
+      --color-text-inverse: #f9f8f4;
+      --color-primary: #01696f;
+      --color-primary-hover: #0c4e54;
+      --color-primary-active: #0f3638;
+      --color-primary-highlight: #cedcd8;
+      --color-success: #437a22;
+      --color-warning: #964219;
+      --color-error: #a12c7b;
+      --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
+      --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
+      --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
+      --font-body: 'Satoshi', Inter, system-ui, sans-serif;
+      --font-display: 'Satoshi', Inter, system-ui, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #171614;
+      --color-surface: #1c1b19;
+      --color-surface-2: #201f1d;
+      --color-surface-offset: #1d1c1a;
+      --color-surface-offset-2: #22211f;
+      --color-surface-dynamic: #2d2c2a;
+      --color-divider: #262523;
+      --color-border: #393836;
+      --color-text: #e2e0dc;
+      --color-text-muted: #a6a39d;
+      --color-text-faint: #706e68;
+      --color-text-inverse: #12110f;
+      --color-primary: #4f98a3;
+      --color-primary-hover: #69aeb8;
+      --color-primary-active: #2d7b86;
+      --color-primary-highlight: #313b3b;
+      --color-success: #6daa45;
+      --color-warning: #e39a67;
+      --color-error: #d163a7;
+      --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+      --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
+      --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
+    }
+
+    * , *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      min-height: 100dvh;
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: 1.6;
+      background: var(--color-bg);
+      color: var(--color-text);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      transition: background var(--transition-interactive), color var(--transition-interactive), border-color var(--transition-interactive), box-shadow var(--transition-interactive), transform var(--transition-interactive);
+    }
+    button:active { transform: translateY(1px); }
+    a { color: inherit; }
+    :focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      grid-template-rows: auto 1fr;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      grid-row: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+      padding: var(--space-6);
+      background: linear-gradient(180deg, var(--color-surface), var(--color-surface-offset));
+      border-right: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-mark svg {
+      width: 34px;
+      height: 34px;
+      padding: 0.35rem;
+      border-radius: 0.8rem;
+      background: color-mix(in oklab, var(--color-primary) 15%, var(--color-surface-2));
+      color: var(--color-primary);
+      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 18%, transparent);
+    }
+
+    .theme-toggle {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: inline-grid;
+      place-items: center;
+      border-radius: var(--radius-full);
+      background: var(--color-surface-2);
+      border: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+    }
+
+    .sidebar-card, .panel, .account-card, .table-wrap, .builder {
+      background: var(--color-surface);
+      border: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sidebar-card {
+      padding: var(--space-5);
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .eyebrow {
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-text-muted);
+    }
+
+    .sidebar-card p, .hint, .subtle {
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+    }
+
+    .quick-stats {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .quick-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-3);
+      font-size: var(--text-sm);
+    }
+
+    .quick-stat strong {
+      font-variant-numeric: tabular-nums lining-nums;
+      font-size: var(--text-base);
+    }
+
+    .nav-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+
+    .nav-link {
+      width: 100%;
+      text-align: left;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-lg);
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .nav-link.active,
+    .nav-link:hover {
+      background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-2));
+      color: var(--color-text);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-5) var(--space-6);
+      background: color-mix(in oklab, var(--color-bg) 78%, transparent);
+      border-bottom: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header h1 {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      line-height: 1.1;
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .pill, .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      border-radius: var(--radius-full);
+      padding: 0.45rem 0.8rem;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .pill {
+      background: color-mix(in oklab, var(--color-primary) 14%, var(--color-surface-2));
+      color: var(--color-text);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      min-height: 44px;
+      padding: 0.8rem 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+      font-size: var(--text-sm);
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+      border-color: color-mix(in oklab, var(--color-primary) 72%, black 8%);
+    }
+    .btn-primary:hover { background: var(--color-primary-hover); }
+    .btn-secondary {
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+    .btn-secondary:hover { background: var(--color-surface-2); }
+
+    .main {
+      overflow-y: auto;
+      padding: var(--space-6);
+    }
+
+    .stack {
+      display: grid;
+      gap: var(--space-6);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    .panel {
+      padding: var(--space-5);
+    }
+
+    .kpi-value {
+      margin-top: var(--space-3);
+      font-size: clamp(1.8rem, 1.4rem + 1vw, 2.5rem);
+      line-height: 1;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    .delta {
+      margin-top: var(--space-2);
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+    }
+
+    .layout-two {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+      gap: var(--space-6);
+      align-items: start;
+    }
+
+    .accounts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+
+    .section-head h2, .builder h2 {
+      margin: 0;
+      font-size: var(--text-lg);
+      line-height: 1.2;
+    }
+
+    .account-card {
+      padding: var(--space-5);
+      display: grid;
+      gap: var(--space-4);
+      background: linear-gradient(180deg, var(--color-surface), var(--color-surface-2));
+    }
+
+    .account-top {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-4);
+      align-items: flex-start;
+    }
+
+    .account-name {
+      font-weight: 700;
+      font-size: var(--text-base);
+      margin: 0;
+    }
+
+    .mono {
+      font-variant-numeric: tabular-nums lining-nums;
+      font-feature-settings: 'tnum' 1, 'lnum' 1;
+    }
+
+    .usage-block {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .metric-row {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .metric-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-3);
+      font-size: var(--text-sm);
+    }
+
+    .progress {
+      height: 0.6rem;
+      border-radius: var(--radius-full);
+      background: color-mix(in oklab, var(--color-text) 8%, transparent);
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--color-primary), color-mix(in oklab, var(--color-primary) 60%, white 12%));
+      width: 0;
+      transition: width 500ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: var(--radius-full);
+      padding: 0.38rem 0.7rem;
+      font-size: var(--text-xs);
+      background: color-mix(in oklab, var(--color-text) 8%, transparent);
+      color: var(--color-text-muted);
+    }
+
+    .status-pill.ok { background: color-mix(in oklab, var(--color-success) 18%, var(--color-surface-2)); color: var(--color-text); }
+    .status-pill.warn { background: color-mix(in oklab, var(--color-warning) 20%, var(--color-surface-2)); color: var(--color-text); }
+    .status-pill.high { background: color-mix(in oklab, var(--color-error) 22%, var(--color-surface-2)); color: var(--color-text); }
+
+    .table-wrap {
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-sm);
+    }
+
+    th, td {
+      padding: 0.95rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: color-mix(in oklab, var(--color-surface-2) 90%, transparent);
+    }
+
+    tbody tr:hover {
+      background: color-mix(in oklab, var(--color-primary) 6%, var(--color-surface-2));
+    }
+
+    .builder {
+      padding: var(--space-5);
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    .field {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .field label {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .field input, .field textarea, .field select {
+      min-height: 44px;
+      width: 100%;
+      border-radius: var(--radius-lg);
+      border: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+      background: var(--color-surface-2);
+      padding: 0.85rem 1rem;
+      resize: vertical;
+    }
+
+    .field textarea { min-height: 110px; }
+    .field.span-2 { grid-column: 1 / -1; }
+
+    .tips-list {
+      display: grid;
+      gap: var(--space-3);
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .tips-list li {
+      display: flex;
+      gap: var(--space-3);
+      align-items: flex-start;
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+
+    .tips-list li::before {
+      content: '';
+      flex: 0 0 0.55rem;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      margin-top: 0.45rem;
+      background: var(--color-primary);
+    }
+
+    .empty {
+      padding: var(--space-10);
+      text-align: center;
+      color: var(--color-text-muted);
+      border: 1px dashed color-mix(in oklab, var(--color-text) 16%, transparent);
+      border-radius: var(--radius-xl);
+      background: color-mix(in oklab, var(--color-surface-2) 75%, transparent);
+    }
+
+    .footer-note {
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+      padding-bottom: var(--space-4);
+    }
+
+    @media (max-width: 1180px) {
+      .dashboard { grid-template-columns: 88px 1fr; }
+      .sidebar-copy, .nav-link span, .sidebar-card p, .sidebar-card .quick-stats, .sidebar-card h2 { display: none; }
+      .brand { justify-content: center; }
+      .brand-mark { justify-content: center; }
+      .sidebar { padding-inline: var(--space-3); }
+      .nav-link { justify-content: center; padding-inline: 0; }
+      .layout-two { grid-template-columns: 1fr; }
+      .accounts-grid { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .dashboard { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; height: auto; overflow: visible; }
+      .sidebar {
+        grid-row: auto;
+        border-right: 0;
+        border-bottom: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+        overflow: visible;
+      }
+      .sidebar-copy, .nav-link span, .sidebar-card p, .sidebar-card .quick-stats, .sidebar-card h2 { display: block; }
+      .nav-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .nav-link { justify-content: center; }
+      .header, .main, .sidebar { padding-left: var(--space-4); padding-right: var(--space-4); }
+      .header { align-items: flex-start; flex-direction: column; }
+      .kpis, .form-grid, .nav-list { grid-template-columns: 1fr; }
+      .main { overflow: visible; }
+      html, body { height: auto; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-label="Ollama usage dashboard">
+          <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <rect x="10" y="10" width="44" height="44" rx="14" stroke="currentColor" stroke-width="4"></rect>
+            <path d="M22 40V24l10-6 10 6v16l-10 6-10-6Z" fill="currentColor" opacity="0.18"></path>
+            <path d="M32 18v28M22 24l10 6 10-6M22 40l10-6 10 6" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          <span class="sidebar-copy">Usage Console</span>
+        </div>
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"></button>
+      </div>
+
+      <div class="sidebar-card">
+        <div>
+          <div class="eyebrow">Status</div>
+          <h2 style="margin:0; font-size: var(--text-lg);">Six accounts, one screen</h2>
+        </div>
+        <p>Use mock data now, then connect a collector later. This first version is ready for manual entry or pasted snapshots.</p>
+        <div class="quick-stats" id="quickStats"></div>
+      </div>
+
+      <nav class="nav-list" aria-label="Primary">
+        <button class="nav-link active" data-scroll="overview"><span>Overview</span></button>
+        <button class="nav-link" data-scroll="accounts"><span>Accounts</span></button>
+        <button class="nav-link" data-scroll="builder"><span>Add data</span></button>
+      </nav>
+
+      <div class="sidebar-card">
+        <div>
+          <div class="eyebrow">Next step</div>
+          <h2 style="margin:0; font-size: var(--text-lg);">Collector-ready</h2>
+        </div>
+        <p>Replace the sample dataset with JSON from Playwright, a Python script, or a manual export from each Ollama account.</p>
+      </div>
+    </aside>
+
+    <header class="header">
+      <div>
+        <div class="eyebrow">Ollama accounts</div>
+        <h1>Usage monitor</h1>
+        <div class="subtle">Track session and weekly limits, see reset windows, and spot the hottest account at a glance.</div>
+      </div>
+      <div class="header-actions">
+        <span class="pill"><span aria-hidden="true">●</span><span id="lastUpdated">Updated just now</span></span>
+        <button class="btn btn-secondary" id="loadSampleBtn" type="button">Load sample data</button>
+        <button class="btn btn-primary" id="exportBtn" type="button">Export JSON</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="stack">
+        <section id="overview" class="stack">
+          <div class="kpis" id="kpiGrid"></div>
+
+          <div class="layout-two">
+            <section>
+              <div class="panel">
+                <div class="section-head">
+                  <div>
+                    <div class="eyebrow">Accounts</div>
+                    <h2>Usage by account</h2>
+                  </div>
+                  <div class="subtle">Sorted by weekly usage.</div>
+                </div>
+                <div id="accountsPanel" class="accounts-grid"></div>
+              </div>
+            </section>
+
+            <aside class="stack">
+              <div class="builder" id="builder">
+                <div>
+                  <div class="eyebrow">Add account</div>
+                  <h2>Paste one account snapshot</h2>
+                </div>
+                <div class="hint">Fill the form with values you read from Ollama Settings. You can keep aliases like Work, Backup, Team-3, or Client-A.</div>
+                <form id="accountForm" class="form-grid">
+                  <div class="field">
+                    <label for="name">Account label</label>
+                    <input id="name" name="name" placeholder="Account 1" required />
+                  </div>
+                  <div class="field">
+                    <label for="plan">Plan</label>
+                    <input id="plan" name="plan" placeholder="Developer" required />
+                  </div>
+                  <div class="field">
+                    <label for="sessionPercent">Session usage %</label>
+                    <input id="sessionPercent" name="sessionPercent" type="number" min="0" max="100" placeholder="42" required />
+                  </div>
+                  <div class="field">
+                    <label for="weeklyPercent">Weekly usage %</label>
+                    <input id="weeklyPercent" name="weeklyPercent" type="number" min="0" max="100" placeholder="57" required />
+                  </div>
+                  <div class="field">
+                    <label for="sessionReset">Session reset</label>
+                    <input id="sessionReset" name="sessionReset" placeholder="3h 12m" required />
+                  </div>
+                  <div class="field">
+                    <label for="weeklyReset">Weekly reset</label>
+                    <input id="weeklyReset" name="weeklyReset" placeholder="5d 4h" required />
+                  </div>
+                  <div class="field span-2">
+                    <label for="models">Top models</label>
+                    <input id="models" name="models" placeholder="qwen3:32b, deepseek-r1:70b" />
+                  </div>
+                  <div class="field span-2">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" placeholder="Optional note, client name, or collector source."></textarea>
+                  </div>
+                  <div class="field span-2" style="display:flex; gap: var(--space-3); align-items:center;">
+                    <button class="btn btn-primary" type="submit">Save account</button>
+                    <button class="btn btn-secondary" type="button" id="clearBtn">Clear all</button>
+                  </div>
+                </form>
+              </div>
+
+              <div class="panel">
+                <div class="section-head">
+                  <div>
+                    <div class="eyebrow">Collector format</div>
+                    <h2>Expected JSON shape</h2>
+                  </div>
+                </div>
+                <div class="hint">Your future Playwright or Python collector can overwrite the <span class="mono">seedAccounts</span> array with objects that follow the same keys.</div>
+                <pre class="mono" style="margin:0; overflow:auto; font-size:0.84rem; color:var(--color-text-muted); background:var(--color-surface-2); padding:1rem; border-radius:var(--radius-lg); border:1px solid color-mix(in oklab, var(--color-text) 8%, transparent);">{
+  "name": "Work-01",
+  "plan": "Developer",
+  "sessionPercent": 42,
+  "weeklyPercent": 57,
+  "sessionReset": "3h 12m",
+  "weeklyReset": "5d 4h",
+  "models": ["qwen3:32b", "deepseek-r1:70b"],
+  "notes": "Main client account"
+}</pre>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="accounts" class="stack">
+          <div class="panel table-wrap">
+            <div class="section-head" style="padding: var(--space-5); padding-bottom: 0;">
+              <div>
+                <div class="eyebrow">Table view</div>
+                <h2>All accounts</h2>
+              </div>
+              <div class="subtle">Use this view when you want quick scanning across all six logins.</div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Account</th>
+                  <th>Plan</th>
+                  <th>Session</th>
+                  <th>Weekly</th>
+                  <th>Reset window</th>
+                  <th>Models</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="accountsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Implementation notes</div>
+              <h2>How to connect it later</h2>
+            </div>
+          </div>
+          <ul class="tips-list">
+            <li>Use one Playwright browser profile per Ollama account so each session stays signed in.</li>
+            <li>Visit the settings page for each account and extract session usage, weekly usage, reset text, and model names.</li>
+            <li>Write the data to a JSON file, then replace the sample array in this page or load it with a simple fetch endpoint.</li>
+            <li>Schedule refresh every 30 to 60 minutes if you want a lightweight monitor instead of real-time polling.</li>
+          </ul>
+        </section>
+
+        <div class="footer-note">This app stores data in memory only. That keeps the first version simple and safe inside a sandboxed browser context.</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const seedAccounts = [
+      { name: 'Work-01', plan: 'Developer', sessionPercent: 34, weeklyPercent: 48, sessionReset: '2h 18m', weeklyReset: '4d 6h', models: ['qwen3:32b', 'deepseek-r1:70b'], notes: 'Primary daily account' },
+      { name: 'Work-02', plan: 'Developer', sessionPercent: 76, weeklyPercent: 82, sessionReset: '58m', weeklyReset: '2d 14h', models: ['llama4:scout', 'qwen3:32b'], notes: 'Heavy testing this week' },
+      { name: 'Backup-01', plan: 'Developer', sessionPercent: 12, weeklyPercent: 19, sessionReset: '4h 41m', weeklyReset: '6d 9h', models: ['gemma3:27b'], notes: 'Low activity' },
+      { name: 'Client-A', plan: 'Pro', sessionPercent: 89, weeklyPercent: 91, sessionReset: '31m', weeklyReset: '1d 3h', models: ['deepseek-r1:70b', 'qwen3:235b'], notes: 'Watch closely' }
+    ];
+
+    let accounts = [...seedAccounts];
+
+    const $ = (selector) => document.querySelector(selector);
+    const kpiGrid = $('#kpiGrid');
+    const accountsPanel = $('#accountsPanel');
+    const accountsTableBody = $('#accountsTableBody');
+    const quickStats = $('#quickStats');
+    const lastUpdated = $('#lastUpdated');
+    const form = $('#accountForm');
+
+    function setThemeIcon() {
+      const btn = document.querySelector('[data-theme-toggle]');
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      btn.innerHTML = dark
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+      btn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+
+    function getStatus(value) {
+      if (value >= 90) return { label: 'Critical', className: 'high' };
+      if (value >= 75) return { label: 'Watch', className: 'warn' };
+      return { label: 'Healthy', className: 'ok' };
+    }
+
+    function number(value) {
+      return `${Math.round(value)}%`;
+    }
+
+    function modelMarkup(models) {
+      if (!models || !models.length) return '<span class="chip">No models logged</span>';
+      return models.map(model => `<span class="chip">${model}</span>`).join('');
+    }
+
+    function renderKpis() {
+      const total = accounts.length;
+      const highestWeekly = accounts.reduce((max, account) => Math.max(max, account.weeklyPercent), 0);
+      const highestSession = accounts.reduce((max, account) => Math.max(max, account.sessionPercent), 0);
+      const watchCount = accounts.filter(account => account.weeklyPercent >= 75 || account.sessionPercent >= 75).length;
+      const avgWeekly = total ? Math.round(accounts.reduce((sum, a) => sum + a.weeklyPercent, 0) / total) : 0;
+
+      const items = [
+        { label: 'Tracked accounts', value: total, detail: total ? `${watchCount} need attention` : 'Add your first account' },
+        { label: 'Average weekly load', value: `${avgWeekly}%`, detail: total ? 'Across all visible accounts' : 'No data yet' },
+        { label: 'Highest weekly use', value: `${highestWeekly}%`, detail: total ? 'Fastest path to the limit' : 'No data yet' },
+        { label: 'Highest session use', value: `${highestSession}%`, detail: total ? 'Useful for short reset cycles' : 'No data yet' },
+      ];
+
+      kpiGrid.innerHTML = items.map(item => `
+        <article class="panel">
+          <div class="eyebrow">${item.label}</div>
+          <div class="kpi-value mono">${item.value}</div>
+          <div class="delta">${item.detail}</div>
+        </article>
+      `).join('');
+
+      quickStats.innerHTML = [
+        ['Accounts', total],
+        ['At watch level', watchCount],
+        ['Top weekly', `${highestWeekly}%`]
+      ].map(([label, value]) => `<div class="quick-stat"><span>${label}</span><strong>${value}</strong></div>`).join('');
+    }
+
+    function renderAccounts() {
+      if (!accounts.length) {
+        accountsPanel.innerHTML = '<div class="empty">No accounts yet. Add one from the form on the right.</div>';
+        accountsTableBody.innerHTML = '<tr><td colspan="7" class="empty">No accounts yet.</td></tr>';
+        return;
+      }
+
+      const sorted = [...accounts].sort((a, b) => b.weeklyPercent - a.weeklyPercent);
+
+      accountsPanel.innerHTML = sorted.map(account => {
+        const weeklyStatus = getStatus(account.weeklyPercent);
+        return `
+          <article class="account-card">
+            <div class="account-top">
+              <div>
+                <p class="account-name">${account.name}</p>
+                <div class="subtle">${account.plan}</div>
+              </div>
+              <span class="status-pill ${weeklyStatus.className}">${weeklyStatus.label}</span>
+            </div>
+            <div class="usage-block">
+              <div class="metric-row">
+                <div class="metric-line"><span>Session</span><strong class="mono">${number(account.sessionPercent)}</strong></div>
+                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(account.sessionPercent, 100))}%;"></div></div>
+              </div>
+              <div class="metric-row">
+                <div class="metric-line"><span>Weekly</span><strong class="mono">${number(account.weeklyPercent)}</strong></div>
+                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(account.weeklyPercent, 100))}%;"></div></div>
+              </div>
+            </div>
+            <div class="metric-line subtle"><span>Session reset</span><span class="mono">${account.sessionReset}</span></div>
+            <div class="metric-line subtle"><span>Weekly reset</span><span class="mono">${account.weeklyReset}</span></div>
+            <div class="chips">${modelMarkup(account.models)}</div>
+            ${account.notes ? `<div class="hint">${account.notes}</div>` : ''}
+          </article>
+        `;
+      }).join('');
+
+      accountsTableBody.innerHTML = sorted.map((account, index) => {
+        const status = getStatus(Math.max(account.sessionPercent, account.weeklyPercent));
+        return `
+          <tr>
+            <td><strong>${account.name}</strong><br><span class="subtle">#${index + 1}</span></td>
+            <td>${account.plan}</td>
+            <td class="mono">${number(account.sessionPercent)}</td>
+            <td class="mono">${number(account.weeklyPercent)}</td>
+            <td><span class="mono">${account.sessionReset}</span> / <span class="mono">${account.weeklyReset}</span></td>
+            <td>${(account.models || []).slice(0, 2).join(', ') || '—'}</td>
+            <td><span class="status-pill ${status.className}">${status.label}</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderAll() {
+      renderKpis();
+      renderAccounts();
+      lastUpdated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(accounts, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'ollama-usage-accounts.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    document.querySelector('[data-theme-toggle]').addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      setThemeIcon();
+    });
+
+    document.querySelectorAll('[data-scroll]').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('[data-scroll]').forEach(node => node.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(button.dataset.scroll).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      accounts.push({
+        name: data.get('name').toString().trim(),
+        plan: data.get('plan').toString().trim(),
+        sessionPercent: Number(data.get('sessionPercent')),
+        weeklyPercent: Number(data.get('weeklyPercent')),
+        sessionReset: data.get('sessionReset').toString().trim(),
+        weeklyReset: data.get('weeklyReset').toString().trim(),
+        models: data.get('models').toString().split(',').map(item => item.trim()).filter(Boolean),
+        notes: data.get('notes').toString().trim()
+      });
+      form.reset();
+      renderAll();
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      accounts = [];
+      renderAll();
+    });
+
+    document.getElementById('loadSampleBtn').addEventListener('click', () => {
+      accounts = [...seedAccounts];
+      renderAll();
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', exportJson);
+
+    setThemeIcon();
+    renderAll();
+  </script>
+</body>
+</html>

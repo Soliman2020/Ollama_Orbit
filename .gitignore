@@ -1,0 +1,8 @@
+# environment
+board_env/
+
+# dotenv
+.env
+
+# primary usage accounts json
+ollama-usage-accounts.json
