@@ -14,7 +14,6 @@ The goal is to avoid manually logging into six accounts and checking `https://ol
 
 - Track **session** and **weekly** percentage usage for several Ollama accounts on one screen (values from the Usage page, e.g. “Session usage 0% used”, “Weekly usage 38.2% used”). 
 - See **reset windows** such as “Resets in 1 hour” for session and “Resets in 6 days” for weekly usage. 
-- Display **model usage lines** like `minimax-m2.5: 11 requests` to understand which models consume your quota. 
 - Auto-refresh usage snapshots every N minutes via a background collector job.
 - Per-account cards and a table view (in the full dashboard) for fast scanning.
 - Export current dataset as JSON from the frontend for analysis or backup.
@@ -30,7 +29,7 @@ The goal is to avoid manually logging into six accounts and checking `https://ol
 
 - **Authentication**:
   - Each Ollama account uses email + password to log in once.
-  - The login flow saves a Playwright `storage_state` file per account so subsequent collection runs can be fully automated and headless. [web:17][web:27]
+  - The login flow saves a Playwright `storage_state` file per account so subsequent collection runs can be fully automated and headless.
   - Storage state files (e.g. `state_account_1.json`) act as persistent sessions, similar to browser profiles.
 
 - **Collector**:
