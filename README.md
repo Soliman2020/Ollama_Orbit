@@ -1,14 +1,22 @@
-# Ollama‑Orbit
+<center>
 
-> **Your orbital command center for all things Ollama.**
+# **Ollama‑Orbit**
 
-![Ollama Orbit Interface](Ollama_Orbit_interface2.png)
+<img src="frontend/orbit_logo_2.png" alt="orbit_logo_2.png" width="300"/>
 
-Ollama‑Orbit is a self-hosted dashboard that tracks session and weekly usage across **multiple Ollama Cloud accounts** in one unified view — so you never have to log into each account individually at https://ollama.com/settings.
+**Your orbital command center for Multiple Ollama Cloud Accounts.**
 
-The backend scrapes the Usage page for every configured account using Playwright (saved browser sessions), caches the results, and exposes them through a FastAPI API. The frontend is a beautifully designed HTML dashboard that reads from that API and displays everything at a glance.
+</center>
 
----
+
+- Ollama‑Orbit is a self-hosted dashboard that tracks session and weekly usage across **multiple Ollama Cloud accounts** in one unified view — so you never have to re-log into each account individually at https://ollama.com/settings.
+
+- The backend scrapes the Usage page for every configured account using Playwright (saved browser sessions), caches the results, and exposes them through a FastAPI API. The frontend is a beautifully designed HTML dashboard that reads from that API and displays everything at a glance.
+
+![](Ollama_Orbit_interface2.png)
+![](Ollama_Orbit_Dark_theme.png)
+
+
 
 ## Table of Contents
 
