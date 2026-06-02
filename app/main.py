@@ -1,56 +1,70 @@
+# app/main.py
+
 import asyncio
+import sys
 from contextlib import asynccontextmanager
 from typing import Dict, List, Optional
 
-from apscheduler.schedulers.background import BackgroundScheduler
+# ── Windows fix ───────────────────────────────────────────────────────────────
+# On Windows, explicitly set ProactorEventLoop BEFORE anything else.
+# This is required for Playwright's asyncio.create_subprocess_exec to work
+# when running inside uvicorn (especially with --reload).
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+# ─────────────────────────────────────────────────────────────────────────────
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .collector import collect_usage, ensure_states_for_all_accounts
 from .config import REFRESH_MINUTES
 
+# ---------------------------------------------------------------------------
+# In-memory cache
+# ---------------------------------------------------------------------------
+
 usage_cache: List[Dict] = []
 last_error: Optional[str] = None
 
-scheduler = BackgroundScheduler()
+
+# ---------------------------------------------------------------------------
+# Async refresh
+# ---------------------------------------------------------------------------
 
 
 async def refresh_usage() -> None:
     """
-    Run the collector and update the in-memory cache.
+    Run the Playwright collector and update the in-memory cache.
+    Called once on startup and on every scheduler tick.
     """
     global usage_cache, last_error
     try:
         data = await collect_usage()
         usage_cache = data
         last_error = None
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         last_error = str(exc)
+        print(f"[error] refresh_usage failed: {exc}")
 
 
-def scheduler_job() -> None:  # pragma: no cover
-    """
-    Bridge function for APScheduler (sync) to call the async refresh.
-    """
-    asyncio.run(refresh_usage())
+# ---------------------------------------------------------------------------
+# Lifespan: startup + shutdown
+# ---------------------------------------------------------------------------
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    FastAPI lifespan context:
-    - Before yield: prepare sessions, start scheduler, run initial refresh.
-    - After yield: stop scheduler and cleanup.
-    """
-    # Ensure all accounts have valid storage_state files (login if needed).
+    # Ensure all accounts have valid storage_state files.
     await ensure_states_for_all_accounts()
 
-    # Run an initial refresh so /usage has data immediately.
+    # Run initial collection so /usage has data immediately.
     await refresh_usage()
 
-    # Start scheduler for recurring refreshes.
+    # AsyncIOScheduler runs inside FastAPI's event loop — no thread conflict.
+    scheduler = AsyncIOScheduler()
     scheduler.add_job(
-        scheduler_job,
+        refresh_usage,
         "interval",
         minutes=REFRESH_MINUTES,
         id="ollama_usage_refresh",
@@ -58,13 +72,15 @@ async def lifespan(app: FastAPI):
     )
     scheduler.start()
 
-    # Hand control to FastAPI (serve requests).
     try:
         yield
     finally:
-        # Shutdown scheduler on app shutdown.
         scheduler.shutdown(wait=False)
 
+
+# ---------------------------------------------------------------------------
+# App
+# ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="Ollama Usage Monitor",
@@ -73,24 +89,24 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten if exposing publicly
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=["http://127.0.0.1:3000", "http://localhost:3000"],
+    allow_methods=["GET"],
     allow_headers=["*"],
 )
 
 
+# ---------------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------------
+
+
 @app.get("/usage")
 async def get_usage():
-    """
-    Return the latest usage snapshot for all accounts.
-    """
+    """Return the latest usage snapshot for all accounts."""
     return {"accounts": usage_cache, "error": last_error}
 
 
 @app.get("/")
 async def root():
-    """
-    Simple health endpoint.
-    """
+    """Health check endpoint."""
     return {"status": "ok", "accounts": len(usage_cache)}
