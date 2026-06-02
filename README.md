@@ -1,8 +1,12 @@
-# Ollama Usage Monitor
+# Ollama‑Orbit
 
-A self-hosted dashboard that tracks session and weekly usage across **multiple Ollama Cloud accounts** in one place — so you never have to log into each account manually at https://ollama.com/settings.
+> **Your orbital command center for all things Ollama.**
 
-The backend scrapes the Usage page for every configured account using Playwright (saved browser sessions), caches the results, and exposes them through a FastAPI API. The frontend is a single HTML file that reads from that API and displays everything in a clean auto-refreshing dashboard.
+![Ollama Orbit Interface](Ollama_Orbit_interface.png)
+
+Ollama‑Orbit is a self-hosted dashboard that tracks session and weekly usage across **multiple Ollama Cloud accounts** in one unified view — so you never have to log into each account individually at https://ollama.com/settings.
+
+The backend scrapes the Usage page for every configured account using Playwright (saved browser sessions), caches the results, and exposes them through a FastAPI API. The frontend is a beautifully designed HTML dashboard that reads from that API and displays everything at a glance.
 
 ---
 
@@ -10,18 +14,21 @@ The backend scrapes the Usage page for every configured account using Playwright
 
 1. [Project Structure](#project-structure)
 2. [How It Works](#how-it-works)
-3. [Prerequisites](#prerequisites)
-4. [Installation](#installation)
-5. [Configuration](#configuration)
-6. [First-Time Login (Save Sessions)](#first-time-login-save-sessions)
-7. [Running the Backend](#running-the-backend)
-8. [Running the Frontend](#running-the-frontend)
-9. [API Reference](#api-reference)
-10. [Data Model](#data-model)
-11. [Fixing the Frontend ↔ Backend Connection (CORS)](#fixing-the-frontend--backend-connection-cors)
-12. [Security Notes](#security-notes)
-13. [Adapting to Ollama UI Changes](#adapting-to-ollama-ui-changes)
-14. [Quick-Start Summary](#quick-start-summary)
+3. [Features](#features)
+4. [Prerequisites](#prerequisites)
+5. [Installation](#installation)
+6. [Configuration](#configuration)
+7. [First-Time Login (Save Sessions)](#first-time-login-save-sessions)
+   - [Option 1: Cookie-Editor (Recommended)](#option-1-cookie-editor-recommended)
+   - [Option 2: Playwright Automated Login (Alternative)](#option-2-playwright-automated-login-alternative)
+8. [Running the Backend](#running-the-backend)
+9. [Running the Frontend](#running-the-frontend)
+10. [API Reference](#api-reference)
+11. [Data Model](#data-model)
+12. [Fixing the Frontend ↔ Backend Connection (CORS)](#fixing-the-frontend--backend-connection-cors)
+13. [Security Notes](#security-notes)
+14. [Adapting to Ollama UI Changes](#adapting-to-ollama-ui-changes)
+15. [Quick-Start Summary](#quick-start-summary)
 
 ---
 
@@ -35,17 +42,22 @@ ollama_dashboard/
 │   ├── collector.py         # Playwright scraper + login helper CLI
 │   └── main.py              # FastAPI app, scheduler, API endpoints
 ├── frontend/
-│   └── dashboard.html       # Single-file HTML/CSS/JS dashboard
-├── sessions/                # Playwright storage-state files (one per account)
-│   ├── state_account1.json
-│   ├── state_account2.json
-│   └── ...                  # Created automatically after first login
+│   └── ollama-usage-dashboard.html  # Single-file HTML/CSS/JS dashboard
+├── sessions/                # Browser session files (one per account)
+│   ├── cookies_account_1.json    # Raw cookies exported from Cookie-Editor
+│   ├── cookies_account_2.json    # (Optional) cookies for account 2
+│   ├── state_account_1.json      # Converted Playwright session
+│   ├── state_account_2.json      # (Optional) session for account 2
+│   └── ...
+├── tools/
+│   └── cookies_to_state.py       # Converts cookie files to Playwright sessions
 ├── requirements.txt         # Python dependencies
+├── .env                     # Environment variables (create this — never commit)
 └── README.md
 ```
 
-> **Important:** The `sessions/` folder contains authenticated browser sessions.
-> Treat every file inside it as a secret — do not commit them to any public repository.
+> **Important:** The `sessions/` folder and `.env` file contain secrets.
+> Treat them as sensitive data — never commit them to any public repository.
 
 ---
 
@@ -65,26 +77,39 @@ ollama_dashboard/
 │       │         Opens https://ollama.com/settings            │
 │       │               │                                      │
 │       │         Parses: session %, weekly %, resets,         │
-│       │                 model usage lines                     │
+│       │                 model usage lines                    │
 │       │                                                      │
 │       ▼                                                      │
 │  usage_cache (in-memory list of account objects)             │
 │       │                                                      │
-│  FastAPI ──► GET /usage  ──► returns JSON cache              │
-│         └──► GET /       ──► health check                    │
+│  FastAPI ──► GET /usage  ──► returns JSON cache             │
+│         └──► GET /       ──► health check                   │
 └──────────────────────────────────────────────────────────────┘
-                          │  HTTP fetch (every 5 min)
+                          │  HTTP fetch on demand
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
-│                       FRONTEND                               │
+│                      FRONTEND                                │
 │                                                              │
-│  frontend/dashboard.html                                     │
-│  ├── KPI cards: total accounts, avg/highest weekly usage,    │
-│  │              critical (>80%), idle (0%)                   │
-│  ├── Cards View: per-account session/weekly bars + resets    │
-│  └── Table View: side-by-side comparison across accounts     │
+│  frontend/ollama-usage-dashboard.html                        │
+│  ├── KPI cards: tracked accounts, avg/highest usage          │
+│  ├── Cards View: session/weekly bars + reset timers          │
+│  ├── Table View: side-by-side comparison                     │
+│  ├── Dark/Light theme toggle                                 │
+│  └── Connected directly to /usage API                        │
 └──────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Features
+
+- **🚀 Multi-account orbit** — Monitor unlimited Ollama Cloud accounts from one screen
+- **📊 Real-time KPIs** — Average load, highest usage, accounts needing attention
+- **🌙 Dark & light themes** — Built-in theme toggle for day/night usage
+- **🔗 Live backend connection** — Fetches fresh data from your FastAPI backend
+- **💾 Sample data fallback** — Explore the dashboard even without a running backend
+- **📤 Export to JSON** — Download your account data anytime
+- **🔄 Auto-refresh** — Scheduler in backend keeps data current (configurable interval)
 
 ---
 
@@ -102,7 +127,7 @@ ollama_dashboard/
 ### 1. Clone / Download the project
 
 ```bash
-git clone <your-repo-url> ollama_dashboard
+git clone https://github.com/Soliman2020/Ollama_Orbit.git
 cd ollama_dashboard
 ```
 
@@ -112,10 +137,7 @@ cd ollama_dashboard
 python -m venv venv
 
 # Windows
-venv\Scripts\activate
-
-# macOS / Linux
-source venv/bin/activate
+venv\Scripts\activate.ps1
 ```
 
 ### 3. Install Python dependencies
@@ -172,28 +194,82 @@ import os
 Then create a `.env` file (never commit it):
 
 ```
-OLLAMA_PWD_1=mypassword1
-OLLAMA_PWD_2=mypassword2
+OLLAMA_EMAIL_1 = YOUR_EMAIL
+OLLAMA_PASSWORD_1 = YOUR_PASSWORD
+
+OLLAMA_EMAIL_2 = YOUR_EMAIL
+OLLAMA_PASSWORD_2 = YOUR_PASSWORD
+
 ```
 
 ---
 
 ## First-Time Login (Save Sessions)
 
-Playwright needs one authenticated browser session per account before it can run headlessly.
-Do this **once per account**:
+Before Ollama‑Orbit can scrape your accounts, it needs authenticated browser sessions.
+You have two options:
+
+### Option 1: Cookie-Editor (Recommended)
+
+This method uses the **Cookie-Editor** browser extension — faster and more reliable than automated login.
+
+#### Step 1: Install Cookie-Editor
+
+Install the **Cookie-Editor** extension for your browser:
+- **Chrome/Edge/Brave:** [Cookie-Editor on Chrome Web Store](https://chromewebstore.google.com/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm)
+
+#### Step 2: Log in manually to each Ollama account
+
+1. Open your browser with the Cookie-Editor extension installed
+2. Go to https://ollama.com and sign in with your first account's credentials
+3. Navigate to https://ollama.com/settings to verify you're logged in
+4. Click the **Cookie-Editor extension icon** in your browser toolbar
+5. Click **Export** (or the download icon) to export all cookies
+6. Copy the exported JSON content
+
+#### Step 3: Save the cookies file
+
+Create a file named `cookies_account_1.json` in the `sessions/` folder and paste the JSON content:
+
+```bash
+# Example for account 1
+sessions/
+├── cookies_account_1.json   # Paste exported cookies here
+├── cookies_account_2.json  # For account 2
+└── ...
+```
+
+Repeat for each Ollama account (each account needs its own `cookies_account_N.json` file).
+
+#### Step 4: Convert cookies to Playwright session
+
+Run the conversion tool:
+
+```bash
+python tools/cookies_to_state.py
+```
+
+This will convert all `cookies_account_*.json` files in `sessions/` into `state_account_*.json` files.
+
+> **Note:** Run this once per account, or whenever a session expires.
+
+---
+
+### Option 2: Playwright Automated Login (Alternative)
+
+If you prefer automated login, Playwright can open a browser and let you log in:
 
 ```bash
 # From the project root with your venv active:
-python -m app.collector --login
+python -m app.collector --manual
 ```
 
 This will open a visible browser window for each account, log in using the credentials in `config.py`,
-and save a `state_accountX.json` file into the `sessions/` folder.
+and save a `state_account_X.json` file into the `sessions/` folder.
 
-After this step, Playwright will reuse those saved sessions — no more interactive logins are needed.
+> ⚠️ This method may fail due to Cloudflare bot detection. If you encounter issues, use **Option 1 (Cookie-Editor)** instead.
 
-> If a session expires, re-run `--login` for that account only.
+After either method, Playwright will reuse those saved sessions — no more interactive logins are needed.
 
 ---
 
@@ -201,7 +277,7 @@ After this step, Playwright will reuse those saved sessions — no more interact
 
 ```bash
 # From the project root:
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 On startup the backend will:
@@ -221,7 +297,7 @@ On startup the backend will:
 
 ## Running the Frontend
 
-> **Do NOT open `dashboard.html` by double-clicking it.**
+> **Do NOT open `ollama-usage-dashboard.html` by double-clicking it.**
 > Opening it as a `file://` URL causes CORS errors — the browser blocks the fetch to the backend.
 > See [Fixing the Frontend ↔ Backend Connection (CORS)](#fixing-the-frontend--backend-connection-cors) below.
 
@@ -237,11 +313,11 @@ python -m http.server 3000
 Then open your browser and go to:
 
 ```
-http://127.0.0.1:3000/dashboard.html
+http://127.0.0.1:3000/ollama-usage-dashboard.html
 ```
 
-The dashboard will connect to the backend at `http://127.0.0.1:8000/usage` and display all account data.
-It auto-refreshes every 5 minutes.
+The Ollama‑Orbit dashboard will connect to the backend at `http://127.0.0.1:8000/usage` and display all account data.
+Click **Refresh live data** to fetch latest usage.
 
 ---
 
@@ -309,21 +385,6 @@ python -m http.server 3000
 # Then open: http://127.0.0.1:3000/dashboard.html
 ```
 
-### Fix B — Add CORS headers to the backend
-
-Add this to `app/main.py` right after `app = FastAPI(...)`:
-
-```python
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],   # or ["null"] to be more restrictive
-    allow_methods=["GET"],
-    allow_headers=["*"],
-)
-```
-
 This allows the browser to deliver the API response even when the HTML is opened from a `file://` URL.
 
 ---
@@ -359,18 +420,27 @@ pip install -r requirements.txt
 playwright install chromium
 
 # 2. Configure your accounts
-#    Edit app/config.py — add emails, passwords, and storage paths
+#    Edit app/config.py — add account names and storage paths
 
-# 3. Save sessions (one-time per account)
-python -m app.collector --login
+# 3. Save sessions (one-time per account using Cookie-Editor)
+#    a. Install Cookie-Editor browser extension
+#    b. Log in to each Ollama account in your browser
+#    c. Export cookies via the extension → save as sessions/cookies_account_1.json
+#    d. Repeat for each account
+#    e. Convert cookies to Playwright sessions:
+python tools/cookies_to_state.py
 
 # 4. Start the backend (Terminal 1)
-uvicorn app.main:app --host 127.0.0.1 --port 8000
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 
 # 5. Start the frontend server (Terminal 2)
 cd frontend
 python -m http.server 3000
 
-# 6. Open the dashboard in your browser
-#    http://127.0.0.1:3000/dashboard.html
+# 6. Open Ollama‑Orbit in your browser
+http://127.0.0.1:3000/ollama-usage-dashboard.html
 ```
+
+---
+
+**🚀 Welcome to orbit — enjoy your journey with Ollama‑Orbit!**

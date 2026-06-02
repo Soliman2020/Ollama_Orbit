@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Ollama Usage Dashboard</title>
+        <title>Ollama-Orbit — Usage Monitor</title>
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link
             href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap"
@@ -783,31 +783,21 @@
         <div class="dashboard">
             <aside class="sidebar">
                 <div class="brand">
-                    <div class="brand-mark" aria-label="Ollama usage dashboard">
-                        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
-                            <rect
-                                x="10"
-                                y="10"
-                                width="44"
-                                height="44"
-                                rx="14"
-                                stroke="currentColor"
-                                stroke-width="4"
-                            ></rect>
-                            <path
-                                d="M22 40V24l10-6 10 6v16l-10 6-10-6Z"
-                                fill="currentColor"
-                                opacity="0.18"
-                            ></path>
-                            <path
-                                d="M32 18v28M22 24l10 6 10-6M22 40l10-6 10 6"
-                                stroke="currentColor"
-                                stroke-width="3.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            ></path>
+                    <div class="brand-mark" aria-label="Ollama-Orbit dashboard">
+                        <!-- Orbit Logo: stylized ring with orbiting dot -->
+                        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true" style="width:38px;height:38px;">
+                            <!-- Outer ring -->
+                            <circle cx="32" cy="32" r="24" stroke="currentColor" stroke-width="3.5" opacity="0.25"/>
+                            <!-- Orbital path (ellipse) -->
+                            <ellipse cx="32" cy="32" rx="22" ry="10" stroke="currentColor" stroke-width="2" transform="rotate(-20 32 32)"/>
+                            <!-- Planet/core -->
+                            <circle cx="32" cy="32" r="10" fill="currentColor"/>
+                            <!-- Orbiting satellite dot -->
+                            <circle cx="50" cy="18" r="5" fill="currentColor" stroke="var(--color-bg)" stroke-width="2">
+                                <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="6s" repeatCount="indefinite"/>
+                            </circle>
                         </svg>
-                        <span class="sidebar-copy">Usage Console</span>
+                        <span class="sidebar-copy">Ollama‑Orbit</span>
                     </div>
                     <button
                         class="theme-toggle"
@@ -819,15 +809,14 @@
 
                 <div class="sidebar-card">
                     <div>
-                        <div class="eyebrow">Status</div>
+                        <div class="eyebrow">Orbit Status</div>
                         <h2 style="margin: 0; font-size: var(--text-lg)">
-                            Six accounts, one screen
+                            All accounts at a glance
                         </h2>
                     </div>
                     <p>
-                        Use mock data now, then connect a collector later. This
-                        first version is ready for manual entry or pasted
-                        snapshots.
+                        Monitor usage across all your Ollama Cloud accounts in one unified dashboard.
+                        Connect the backend for live data, or use sample data to explore.
                     </p>
                     <div class="quick-stats" id="quickStats"></div>
                 </div>
@@ -846,39 +835,38 @@
 
                 <div class="sidebar-card">
                     <div>
-                        <div class="eyebrow">Next step</div>
+                        <div class="eyebrow">Getting started</div>
                         <h2 style="margin: 0; font-size: var(--text-lg)">
-                            Collector-ready
+                            Ready to launch
                         </h2>
                     </div>
                     <p>
-                        Replace the sample dataset with JSON from Playwright, a
-                        Python script, or a manual export from each Ollama
-                        account.
+                        Click <strong>Refresh live data</strong> to fetch from your backend,
+                        or use <strong>Load sample data</strong> to preview the dashboard.
                     </p>
                 </div>
             </aside>
 
             <header class="header">
                 <div>
-                    <div class="eyebrow">Ollama accounts</div>
-                    <h1>Usage monitor</h1>
+                    <div class="eyebrow">Ollama‑Orbit</div>
+                    <h1>Usage Monitor</h1>
                     <div class="subtle">
-                        Track session and weekly limits, see reset windows, and
-                        spot the hottest account at a glance.
+                        Track session and weekly usage across all your accounts —
+                        never log in individually again.
                     </div>
                     <div
                         id="connectionStatus"
                         class="subtle"
                         style="margin-top: 0.35rem"
                     >
-                        Connecting to backend...
+                        Connecting to orbit…
                     </div>
                 </div>
                 <div class="header-actions">
                     <span class="pill"
                         ><span aria-hidden="true">●</span
-                        ><span id="lastUpdated">Updated just now</span></span
+                        ><span id="lastUpdated">Orbiting…</span></span
                     >
                     <label class="field" style="min-width: 240px; gap: 0.35rem">
                         <span
@@ -1185,9 +1173,8 @@
                     </section>
 
                     <div class="footer-note">
-                        This app stores data in memory only. That keeps the
-                        first version simple and safe inside a sandboxed browser
-                        context.
+                        <strong>Ollama‑Orbit</strong> v1.0 — Data is stored in memory only.
+                        Refresh the page to reconnect to the orbit backend.
                     </div>
                 </div>
             </main>
@@ -1510,7 +1497,7 @@
                 });
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(blob);
-                a.download = "ollama-usage-accounts.json";
+                a.download = "ollama-orbit-accounts.json";
                 a.click();
                 setTimeout(() => URL.revokeObjectURL(a.href), 1000);
             }
