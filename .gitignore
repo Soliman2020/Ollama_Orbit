@@ -12,3 +12,6 @@ app/state_account_*.json
 
 # cookies
 cookies*.json
+
+# Python cache
+__pycache__/
