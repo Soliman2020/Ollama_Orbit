@@ -2,7 +2,7 @@
 
 > **Your orbital command center for all things Ollama.**
 
-![Ollama Orbit Interface](Ollama_Orbit_interface.png)
+![Ollama Orbit Interface](Ollama_Orbit_interface2.png)
 
 Ollama‑Orbit is a self-hosted dashboard that tracks session and weekly usage across **multiple Ollama Cloud accounts** in one unified view — so you never have to log into each account individually at https://ollama.com/settings.
 
