@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import re
+from calendar import c
 from typing import Dict, List
 
 from playwright.async_api import async_playwright
@@ -9,7 +10,7 @@ from playwright.async_api import async_playwright
 from .config import ACCOUNTS, SETTINGS_URL
 
 
-async def login_and_save_state(email: str, storage_path: str) -> None:
+async def login_and_save_state(email: str, password: str, storage_path: str) -> None:
     """Interactive login for a single account, saves storage_state to disk.
 
     Run with a visible browser, log in manually, and once you reach the
@@ -74,12 +75,6 @@ async def scrape_account(page, name: str, plan: str) -> Dict:
     session_reset = extract_reset("Session usage") or "n/a"
     weekly_reset = extract_reset("Weekly usage") or "n/a"
 
-    # models: List[str] = []
-    # for line in body_text.splitlines():
-    #     line = line.strip()
-    #     if "requests" in line and ":" in line and "usage" not in line.lower():
-    #         models.append(line)
-
     return {
         "name": name,
         "plan": plan,
@@ -87,7 +82,6 @@ async def scrape_account(page, name: str, plan: str) -> Dict:
         "weeklyPercent": round(weekly_percent),
         "sessionReset": session_reset,
         "weeklyReset": weekly_reset,
-        # "models": models,
         "notes": "",
     }
 
@@ -114,7 +108,7 @@ async def interactive_login_flow():
     await ensure_states_for_all_accounts()
     for cfg in ACCOUNTS:
         print(f"\n=== Login for {cfg['name']} ({cfg['email']}) ===")
-        await login_and_save_state(cfg["email"], cfg["storage"])
+        await login_and_save_state(cfg["email"], cfg["password"], cfg["storage"])
         print(f"Saved storage to {cfg['storage']}")
 
 
