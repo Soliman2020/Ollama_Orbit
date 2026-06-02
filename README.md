@@ -180,7 +180,7 @@ ACCOUNTS = [
     # ... repeat for each account
 ]
 
-REFRESH_MINUTES = 5          # How often the scheduler re-scrapes all accounts
+REFRESH_MINUTES = 10          # How often the scheduler re-scrapes all accounts
 SETTINGS_URL = "https://ollama.com/settings"  # Change only if Ollama moves this page
 ```
 
