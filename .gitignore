@@ -6,3 +6,9 @@ board_env/
 
 # primary usage accounts json
 ollama-usage-accounts.json
+
+# state files
+app/state_account_*.json
+
+# cookies
+cookies*.json
