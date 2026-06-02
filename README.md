@@ -431,14 +431,14 @@ playwright install chromium
 python tools/cookies_to_state.py
 
 # 4. Start the backend (Terminal 1)
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 # 5. Start the frontend server (Terminal 2)
 cd frontend
 python -m http.server 3000
 
 # 6. Open Ollama‑Orbit in your browser
-http://127.0.0.1:3000/ollama-usage-dashboard.html
+http://127.0.0.1:3000/frontend/ollama-usage-dashboard.html
 ```
 
 ---

@@ -12,42 +12,42 @@ dotenv.load_dotenv()
 
 ACCOUNTS: List[Dict] = [
     {
-        "name": "Account_1",
+        "name": "msoliman",
         "plan": "Free",
         "email": os.getenv("OLLAMA_EMAIL_1"),  # example, replace per account
         "password": os.getenv("OLLAMA_PASSWORD_1"),
         "storage": "app/state_account_1.json",
     },
     {
-        "name": "Account_2",
+        "name": "rut-tassel",
         "plan": "Free",
         "email": os.getenv("OLLAMA_EMAIL_2"),  # example, replace per account
         "password": os.getenv("OLLAMA_PASSWORD_2"),
         "storage": "app/state_account_2.json",
     },
     {
-        "name": "Account_3",
+        "name": "humbly-swoosh",
         "plan": "Free",
         "email": os.getenv("OLLAMA_EMAIL_3"),  # example, replace per account
         "password": os.getenv("OLLAMA_PASSWORD_3"),
         "storage": "app/state_account_3.json",
     },
     {
-        "name": "Account_4",
+        "name": "foe-unruly",
         "plan": "Free",
         "email": os.getenv("OLLAMA_EMAIL_4"),  # example, replace per account
         "password": os.getenv("OLLAMA_PASSWORD_4"),
         "storage": "app/state_account_4.json",
     },
     {
-        "name": "Account_5",
+        "name": "poking-jot",
         "plan": "Free",
         "email": os.getenv("OLLAMA_EMAIL_5"),  # example, replace per account
         "password": os.getenv("OLLAMA_PASSWORD_5"),
         "storage": "app/state_account_5.json",
     },
     {
-        "name": "Account_6",
+        "name": "gmail",
         "plan": "Free",
         "email": os.getenv("OLLAMA_EMAIL_6"),  # example, replace per account
         "password": os.getenv("OLLAMA_PASSWORD_6"),
