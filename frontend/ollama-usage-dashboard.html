@@ -627,9 +627,15 @@
         <div class="eyebrow">Ollama accounts</div>
         <h1>Usage monitor</h1>
         <div class="subtle">Track session and weekly limits, see reset windows, and spot the hottest account at a glance.</div>
+        <div id="connectionStatus" class="subtle" style="margin-top: 0.35rem;">Connecting to backend...</div>
       </div>
       <div class="header-actions">
         <span class="pill"><span aria-hidden="true">●</span><span id="lastUpdated">Updated just now</span></span>
+        <label class="field" style="min-width: 240px; gap: 0.35rem;">
+          <span style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em;">Backend URL</span>
+          <input id="apiBaseUrl" value="http://127.0.0.1:8000" aria-label="Backend URL" />
+        </label>
+        <button class="btn btn-secondary" id="refreshBtn" type="button">Refresh live data</button>
         <button class="btn btn-secondary" id="loadSampleBtn" type="button">Load sample data</button>
         <button class="btn btn-primary" id="exportBtn" type="button">Export JSON</button>
       </div>
@@ -786,6 +792,8 @@
     const accountsTableBody = $('#accountsTableBody');
     const quickStats = $('#quickStats');
     const lastUpdated = $('#lastUpdated');
+    const connectionStatus = $('#connectionStatus');
+    const apiBaseUrlInput = $('#apiBaseUrl');
     const form = $('#accountForm');
 
     function setThemeIcon() {
@@ -810,6 +818,30 @@
     function modelMarkup(models) {
       if (!models || !models.length) return '<span class="chip">No models logged</span>';
       return models.map(model => `<span class="chip">${model}</span>`).join('');
+    }
+
+    function normalizeAccount(account) {
+      return {
+        name: account.name ?? 'Unknown',
+        plan: account.plan ?? 'Unknown',
+        sessionPercent: Number(account.sessionPercent ?? 0),
+        weeklyPercent: Number(account.weeklyPercent ?? 0),
+        sessionReset: account.sessionReset ?? 'n/a',
+        weeklyReset: account.weeklyReset ?? 'n/a',
+        models: Array.isArray(account.models)
+          ? account.models
+          : String(account.models ?? '').split(',').map(item => item.trim()).filter(Boolean),
+        notes: account.notes ?? ''
+      };
+    }
+
+    function getApiBaseUrl() {
+      return apiBaseUrlInput.value.trim().replace(/\/$/, '');
+    }
+
+    function setConnectionStatus(message, isError = false) {
+      connectionStatus.textContent = message;
+      connectionStatus.style.color = isError ? 'var(--color-error)' : 'var(--color-text-muted)';
     }
 
     function renderKpis() {
@@ -901,6 +933,33 @@
       lastUpdated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     }
 
+    async function loadLiveData() {
+      const baseUrl = getApiBaseUrl();
+      setConnectionStatus(`Connecting to ${baseUrl}...`);
+
+      try {
+        const response = await fetch(`${baseUrl}/usage`, { headers: { Accept: 'application/json' } });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} ${response.statusText}`);
+        }
+
+        const payload = await response.json();
+        const liveAccounts = Array.isArray(payload.accounts) ? payload.accounts.map(normalizeAccount) : [];
+        accounts = liveAccounts.length ? liveAccounts : [];
+        renderAll();
+
+        if (payload.error) {
+          setConnectionStatus(`Connected to backend, but collector reported: ${payload.error}`, true);
+        } else {
+          setConnectionStatus(`Live data loaded from ${baseUrl}/usage`);
+        }
+      } catch (error) {
+        accounts = [...seedAccounts];
+        renderAll();
+        setConnectionStatus(`Using sample data. Live backend unavailable: ${error.message}`, true);
+      }
+    }
+
     function exportJson() {
       const blob = new Blob([JSON.stringify(accounts, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
@@ -949,12 +1008,15 @@
     document.getElementById('loadSampleBtn').addEventListener('click', () => {
       accounts = [...seedAccounts];
       renderAll();
+      setConnectionStatus('Loaded sample data.');
     });
+
+    document.getElementById('refreshBtn').addEventListener('click', loadLiveData);
 
     document.getElementById('exportBtn').addEventListener('click', exportJson);
 
     setThemeIcon();
-    renderAll();
+    loadLiveData();
   </script>
 </body>
 </html>
