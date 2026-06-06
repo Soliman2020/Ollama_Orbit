@@ -5,6 +5,8 @@
 <img src="frontend/orbit_logo_2.png" alt="orbit_logo_2.png" width="300"/>
 
 **Your orbital command center for Multiple Ollama Cloud Accounts.**
+    
+![Demo](https://github.com/user-attachments/assets/b085f015-d675-4c4a-ba45-f2265752eb33)
 
 </center>
 
