@@ -560,6 +560,83 @@
                     transparent
                 );
                 color: var(--color-text-muted);
+                gap: 0.35rem;
+            }
+            .chip .chip-count {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 1.1rem;
+                height: 1.1rem;
+                padding: 0 0.3rem;
+                border-radius: var(--radius-full);
+                background: color-mix(
+                    in oklab,
+                    var(--color-primary) 20%,
+                    transparent
+                );
+                color: var(--color-primary);
+                font-size: 0.65rem;
+                font-weight: 700;
+            }
+            .chip .chip-count.warn {
+                background: color-mix(
+                    in oklab,
+                    var(--color-warning) 20%,
+                    transparent
+                );
+                color: var(--color-warning);
+            }
+            .chip .chip-count.high {
+                background: color-mix(
+                    in oklab,
+                    var(--color-error) 20%,
+                    transparent
+                );
+                color: var(--color-error);
+            }
+            .model-usage {
+                margin-top: var(--space-3);
+            }
+            .model-usage-header {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.65rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: var(--color-text-faint);
+                padding: 0 0.1rem 0.2rem;
+            }
+            .model-usage-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.25rem 0.1rem;
+                font-size: var(--text-xs);
+                border-top: 1px solid var(--color-divider);
+            }
+            .model-usage-row:first-of-type {
+                border-top: none;
+            }
+            .model-usage-name {
+                color: var(--color-text-muted);
+                font-weight: 500;
+            }
+            .model-usage-counts {
+                display: flex;
+                gap: var(--space-4);
+            }
+            .model-usage-count {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.15rem;
+                color: var(--color-text-faint);
+                font-size: 0.75rem;
+            }
+            .model-usage-count strong {
+                color: var(--color-text);
+                font-weight: 600;
+                font-size: 0.8rem;
             }
 
             .status-pill.ok {
@@ -1179,6 +1256,14 @@
   "sessionReset": "3h 12m",
   "weeklyReset": "5d 4h",
   "models": ["qwen3:32b", "deepseek-r1:70b"],
+  "sessionModels": [
+    { "model": "qwen3:32b", "requests": 12 },
+    { "model": "deepseek-r1:70b", "requests": 3 }
+  ],
+  "weeklyModels": [
+    { "model": "qwen3:32b", "requests": 45 },
+    { "model": "deepseek-r1:70b", "requests": 18 }
+  ],
   "notes": "Main client account"
 }</pre
                                     >
@@ -1271,6 +1356,14 @@
                     sessionReset: "2h 18m",
                     weeklyReset: "4d 6h",
                     models: ["qwen3:32b", "deepseek-r1:70b"],
+                    sessionModels: [
+                        { model: "qwen3:32b", requests: 12 },
+                        { model: "deepseek-r1:70b", requests: 3 },
+                    ],
+                    weeklyModels: [
+                        { model: "qwen3:32b", requests: 45 },
+                        { model: "deepseek-r1:70b", requests: 18 },
+                    ],
                     notes: "Primary daily account",
                 },
                 {
@@ -1281,6 +1374,14 @@
                     sessionReset: "58m",
                     weeklyReset: "2d 14h",
                     models: ["llama4:scout", "qwen3:32b"],
+                    sessionModels: [
+                        { model: "llama4:scout", requests: 8 },
+                        { model: "qwen3:32b", requests: 6 },
+                    ],
+                    weeklyModels: [
+                        { model: "llama4:scout", requests: 34 },
+                        { model: "qwen3:32b", requests: 52 },
+                    ],
                     notes: "Heavy testing this week",
                 },
                 {
@@ -1291,6 +1392,8 @@
                     sessionReset: "4h 41m",
                     weeklyReset: "6d 9h",
                     models: ["gemma3:27b"],
+                    sessionModels: [{ model: "gemma3:27b", requests: 4 }],
+                    weeklyModels: [{ model: "gemma3:27b", requests: 11 }],
                     notes: "Low activity",
                 },
                 {
@@ -1301,6 +1404,14 @@
                     sessionReset: "31m",
                     weeklyReset: "1d 3h",
                     models: ["deepseek-r1:70b", "qwen3:235b"],
+                    sessionModels: [
+                        { model: "deepseek-r1:70b", requests: 15 },
+                        { model: "qwen3:235b", requests: 7 },
+                    ],
+                    weeklyModels: [
+                        { model: "deepseek-r1:70b", requests: 62 },
+                        { model: "qwen3:235b", requests: 38 },
+                    ],
                     notes: "Watch closely",
                 },
             ];
@@ -1342,15 +1453,103 @@
                 return `${Math.round(value)}%`;
             }
 
-            function modelMarkup(models) {
+            function modelMarkup(models, countsMap = null) {
                 if (!models || !models.length)
                     return '<span class="chip">No models logged</span>';
                 return models
-                    .map((model) => `<span class="chip">${model}</span>`)
+                    .map((model) => {
+                        let name, count;
+                        if (typeof model === "object" && model !== null) {
+                            name = model.model || model.name || "Unknown";
+                            count = model.requests ?? model.count ?? null;
+                        } else {
+                            name = String(model);
+                            count = countsMap?.[name] ?? null;
+                        }
+                        const countHtml =
+                            count !== null && count !== undefined
+                                ? `<span class="chip-count">${count}</span>`
+                                : "";
+                        return `<span class="chip">${name}${countHtml}</span>`;
+                    })
                     .join("");
             }
 
+            function buildModelUsageRows(account) {
+                const { sessionModels = [], weeklyModels = [] } = account;
+                if (!sessionModels.length && !weeklyModels.length) return "";
+                const allNames = [
+                    ...new Set([
+                        ...sessionModels.map((m) => m.model),
+                        ...weeklyModels.map((m) => m.model),
+                    ]),
+                ];
+                const rows = allNames
+                    .map((name) => {
+                        const s =
+                            sessionModels.find((m) => m.model === name)
+                                ?.requests ?? "—";
+                        const w =
+                            weeklyModels.find((m) => m.model === name)
+                                ?.requests ?? "—";
+                        return `
+                    <div class="model-usage-row">
+                        <span class="model-usage-name">${name}</span>
+                        <div class="model-usage-counts">
+                            <span class="model-usage-count">S <strong>${s}</strong></span>
+                            <span class="model-usage-count">W <strong>${w}</strong></span>
+                        </div>
+                    </div>`;
+                    })
+                    .join("");
+                return `
+                <div class="model-usage">
+                    <div class="model-usage-header">
+                        <span>Model</span>
+                        <span>Session / Weekly requests</span>
+                    </div>
+                    ${rows}
+                </div>`;
+            }
+
             function normalizeAccount(account) {
+                const normalizeModelList = (raw) => {
+                    if (!raw) return [];
+                    if (Array.isArray(raw)) return raw;
+                    // Legacy: comma-separated string
+                    return String(raw)
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter(Boolean);
+                };
+                const normalizeModelUsage = (raw) => {
+                    if (!Array.isArray(raw)) return [];
+                    return raw
+                        .filter(
+                            (m) =>
+                                m &&
+                                typeof m === "object" &&
+                                (m.model || m.name),
+                        )
+                        .map((m) => ({
+                            model: m.model || m.name || "Unknown",
+                            requests: Number(m.requests ?? m.count ?? 0),
+                        }));
+                };
+                const models = normalizeModelList(account.models);
+                const sessionModels = normalizeModelUsage(account.sessionModels);
+                const weeklyModels = normalizeModelUsage(account.weeklyModels);
+                // If sessionModels/weeklyModels are present but top-level
+                // models is empty, derive it from the union.
+                const derivedModels =
+                    models.length || !sessionModels.length + !weeklyModels.length
+                        ? models
+                        : [
+                              ...new Set([
+                                  ...sessionModels.map((m) => m.model),
+                                  ...weeklyModels.map((m) => m.model),
+                              ]),
+                          ];
                 return {
                     name: account.name ?? "Unknown",
                     plan: account.plan ?? "Unknown",
@@ -1364,12 +1563,9 @@
                         account.weeklyReset && account.weeklyReset !== "n/a"
                             ? account.weeklyReset
                             : "n/a",
-                    models: Array.isArray(account.models)
-                        ? account.models
-                        : String(account.models ?? "")
-                              .split(",")
-                              .map((item) => item.trim())
-                              .filter(Boolean),
+                    models: derivedModels,
+                    sessionModels,
+                    weeklyModels,
                     notes: account.notes ?? "",
                 };
             }
@@ -1502,7 +1698,7 @@
             </div>
             <div class="metric-line subtle"><span>Session reset</span><span class="mono">${account.sessionReset}</span></div>
             <div class="metric-line subtle"><span>Weekly reset</span><span class="mono">${account.weeklyReset}</span></div>
-            <div class="chips">${modelMarkup(account.models)}</div>
+            ${buildModelUsageRows(account)}
             ${account.notes ? `<div class="hint">${account.notes}</div>` : ""}
           </article>
         `;
@@ -1524,7 +1720,17 @@
             <td class="mono">${number(account.sessionPercent)}</td>
             <td class="mono">${number(account.weeklyPercent)}</td>
             <td><span class="mono">${account.sessionReset}</span> / <span class="mono">${account.weeklyReset}</span></td>
-            <td>${(account.models || []).slice(0, 2).join(", ") || "—"}</td>
+            <td class="mono">${(() => {
+                const sm = account.sessionModels || [];
+                const wm = account.weeklyModels || [];
+                if (!sm.length && !wm.length) return "—";
+                const names = [...new Set([...sm.map(m => m.model), ...wm.map(m => m.model)])];
+                return names.map(n => {
+                    const sr = sm.find(m => m.model === n)?.requests ?? "—";
+                    const wr = wm.find(m => m.model === n)?.requests ?? "—";
+                    return `S:${sr} W:${wr}`;
+                }).join("  ");
+            })()}</td>
             <td><span class="status-pill ${status.className}">${status.label}</span></td>
           </tr>
         `;
@@ -1617,6 +1823,12 @@
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
                 const data = new FormData(form);
+                const modelNames = data
+                    .get("models")
+                    .toString()
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean);
                 accounts.push({
                     name: data.get("name").toString().trim(),
                     plan: data.get("plan").toString().trim(),
@@ -1624,12 +1836,15 @@
                     weeklyPercent: Number(data.get("weeklyPercent")),
                     sessionReset: data.get("sessionReset").toString().trim(),
                     weeklyReset: data.get("weeklyReset").toString().trim(),
-                    models: data
-                        .get("models")
-                        .toString()
-                        .split(",")
-                        .map((item) => item.trim())
-                        .filter(Boolean),
+                    models: modelNames,
+                    sessionModels: modelNames.map((m) => ({
+                        model: m,
+                        requests: 0,
+                    })),
+                    weeklyModels: modelNames.map((m) => ({
+                        model: m,
+                        requests: 0,
+                    })),
                     notes: data.get("notes").toString().trim(),
                 });
                 form.reset();
