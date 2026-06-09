@@ -87,7 +87,7 @@ ollama_dashboard/
 │       │         Opens https://ollama.com/settings            │
 │       │               │                                      │
 │       │         Parses: session %, weekly %, resets,         │
-│       │                 model usage lines                    │
+│       │         per-model request counts (session + weekly)    │
 │       │                                                      │
 │       ▼                                                      │
 │  usage_cache (in-memory list of account objects)             │
@@ -115,6 +115,7 @@ ollama_dashboard/
 
 - **🚀 Multi-account orbit** — Monitor unlimited Ollama Cloud accounts from one screen
 - **📊 Real-time KPIs** — Average load, highest usage, accounts needing attention
+- **🤖 Per-model usage tracking** — See exactly which models you used (session + weekly request counts)
 - **🌙 Dark & light themes** — Built-in theme toggle for day/night usage
 - **🔗 Live backend connection** — Fetches fresh data from your FastAPI backend
 - **💾 Sample data fallback** — Explore the dashboard even without a running backend
@@ -354,6 +355,13 @@ Each account object returned by `GET /usage` looks like this:
   "weeklyPercent": 38,
   "sessionReset": "2 hours.",
   "weeklyReset": "5 days.",
+  "models": ["kimi-k2.6"],
+  "sessionModels": [
+    { "model": "kimi-k2.6", "requests": 2 }
+  ],
+  "weeklyModels": [
+    { "model": "kimi-k2.6", "requests": 2 }
+  ],
   "notes": ""
 }
 ```
@@ -366,6 +374,9 @@ Each account object returned by `GET /usage` looks like this:
 | `weeklyPercent` | number | Weekly usage % from the Ollama Usage page |
 | `sessionReset` | string | Time until session resets, e.g. `"2 hours."` |
 | `weeklyReset` | string | Time until weekly resets, e.g. `"5 days."` |
+| `models` | string[] | Unique model names derived from session + weekly usage (top-level convenience list) |
+| `sessionModels` | `{model, requests}[]` | Per-model request counts for the current session |
+| `weeklyModels` | `{model, requests}[]` | Per-model request counts for the current week |
 | `notes` | string | Optional internal label set in `config.py` |
 
 The full response envelope is:
