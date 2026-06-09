@@ -138,6 +138,7 @@ async def scrape_account(page, name: str, plan: str) -> Dict:
     Navigate to the Ollama settings/usage page and extract:
     - Session usage percentage and reset window.
     - Weekly usage percentage and reset window.
+    - Per-model request counts for both session and weekly usage.
     """
     await page.goto(
         SETTINGS_URL,
@@ -171,6 +172,48 @@ async def scrape_account(page, name: str, plan: str) -> Dict:
     session_reset = extract_reset("Session usage")
     weekly_reset = extract_reset("Weekly usage")
 
+    # ------------------------------------------------------------------
+    # Extract per-model usage from data-usage-segment elements.
+    # Each meter (session + weekly) contains buttons with:
+    #   data-model="kimi-k2.6" data-requests="2"
+    # ------------------------------------------------------------------
+    session_models: List[Dict] = []
+    weekly_models: List[Dict] = []
+
+    try:
+        meters = await page.query_selector_all("[data-usage-meter]")
+        for meter in meters:
+            track = await meter.query_selector("[data-usage-track]")
+            if not track:
+                continue
+            aria_label = await track.get_attribute("aria-label") or ""
+
+            segments = await meter.query_selector_all("[data-usage-segment]")
+            models_for_meter: List[Dict] = []
+            for seg in segments:
+                model_name = await seg.get_attribute("data-model")
+                requests_str = await seg.get_attribute("data-requests")
+                if model_name and requests_str:
+                    try:
+                        req_count = int(requests_str)
+                    except ValueError:
+                        req_count = 0
+                    models_for_meter.append({
+                        "model": model_name,
+                        "requests": req_count,
+                    })
+
+            if "Session" in aria_label:
+                session_models = models_for_meter
+            elif "Weekly" in aria_label:
+                weekly_models = models_for_meter
+    except Exception:
+        # If JS attribute extraction fails, fall back to no model data.
+        pass
+
+    # Derive a top-level "models" list (unique model names from either bucket).
+    all_model_names = {m["model"] for m in session_models + weekly_models}
+
     return {
         "name": name,
         "plan": plan,
@@ -178,6 +221,9 @@ async def scrape_account(page, name: str, plan: str) -> Dict:
         "weeklyPercent": round(weekly_percent),
         "sessionReset": session_reset,
         "weeklyReset": weekly_reset,
+        "models": sorted(all_model_names) if all_model_names else [],
+        "sessionModels": session_models,
+        "weeklyModels": weekly_models,
         "notes": "",
     }
 
@@ -213,6 +259,9 @@ async def collect_usage() -> List[Dict]:
                         "weeklyPercent": 0,
                         "sessionReset": "no session",
                         "weeklyReset": "no session",
+                        "models": [],
+                        "sessionModels": [],
+                        "weeklyModels": [],
                         "notes": "Run --manual to log in.",
                     }
                 )
@@ -234,6 +283,9 @@ async def collect_usage() -> List[Dict]:
                         "weeklyPercent": 0,
                         "sessionReset": "error",
                         "weeklyReset": "error",
+                        "models": [],
+                        "sessionModels": [],
+                        "weeklyModels": [],
                         "notes": str(exc),
                     }
                 )
