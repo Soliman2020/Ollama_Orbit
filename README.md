@@ -87,7 +87,7 @@ ollama_dashboard/
 │       │         Opens https://ollama.com/settings            │
 │       │               │                                      │
 │       │         Parses: session %, weekly %, resets,         │
-│       │         per-model request counts (session + weekly)    │
+│       │         per-model request counts (session + weekly)  │
 │       │                                                      │
 │       ▼                                                      │
 │  usage_cache (in-memory list of account objects)             │
