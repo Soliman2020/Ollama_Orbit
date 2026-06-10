@@ -6,17 +6,17 @@
 
 **Your orbital command center for Multiple Ollama Cloud Accounts.**
     
-![Demo](https://github.com/user-attachments/assets/b085f015-d675-4c4a-ba45-f2265752eb33)
+![Demo](https://github.com/user-attachments/assets/e1f4e6ad-de2a-4f04-b6ed-502bed4dbefe)
 
 </center>
 
 
 - Ollama‑Orbit is a self-hosted dashboard that tracks session and weekly usage across **multiple Ollama Cloud accounts** in one unified view — so you never have to re-log into each account individually at https://ollama.com/settings.
 
-- The backend scrapes the Usage page for every configured account using Playwright (saved browser sessions), caches the results, and exposes them through a FastAPI API. The frontend is a beautifully designed HTML dashboard that reads from that API and displays everything at a glance.
+- The backend scrapes the Usage page for every configured account using Playwright (saved browser sessions), caches the results, and exposes them through a FastAPI API. The frontend is a beautifully designed HTML dashboard that reads from that API and displays everything at a glance — including per-model request counts with consistent emoji icons, tier-colored progress bars, and distinct account card accents.
 
-![](Ollama_Orbit_interface2.png)
-![](Ollama_Orbit_Dark_theme.png)
+![](orbit_light.png)
+![](orbit_dark.png)
 
 
 
@@ -115,7 +115,9 @@ ollama_dashboard/
 
 - **🚀 Multi-account orbit** — Monitor unlimited Ollama Cloud accounts from one screen
 - **📊 Real-time KPIs** — Average load, highest usage, accounts needing attention
-- **🤖 Per-model usage tracking** — See exactly which models you used (session + weekly request counts)
+- **🤖 Per-model usage tracking** — See exactly which models you used (session + weekly request counts) with consistent emoji icons across accounts
+- **🎨 Tiered usage bars** — Progress bars colored by usage level: green (0-25%), amber (26-50%), pink (51-75%), teal (76-100%)
+- **💳 Account card accents** — Each account card gets a distinct pastel background tint so accounts are easy to distinguish
 - **🌙 Dark & light themes** — Built-in theme toggle for day/night usage
 - **🔗 Live backend connection** — Fetches fresh data from your FastAPI backend
 - **💾 Sample data fallback** — Explore the dashboard even without a running backend
