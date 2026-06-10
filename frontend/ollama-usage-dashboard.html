@@ -1459,6 +1459,55 @@
                     .join("");
             }
 
+            // Per-model emoji registry: same model name → same emoji across
+            // every account. The first time we see a model, we mint a new
+            // emoji from the palette; subsequent uses look it up.
+            const MODEL_EMOJI_PALETTE = [
+                "🚀",
+                "🧠",
+                "🪐",
+                "⚡",
+                "🔮",
+                "🛸",
+                "🌌",
+                "🤖",
+                "✨",
+                "🛰️",
+                "🌠",
+                "🧬",
+                "🔭",
+                "🪄",
+                "🌀",
+                "💫",
+                "🪨",
+                "🌙",
+                "☄️",
+                "🎯",
+                "🦾",
+                "🧿",
+                "📡",
+                "🌟",
+                "🪁",
+                "🧊",
+                "🪵",
+                "🦉",
+                "🐉",
+                "🦊",
+            ];
+            const modelEmojiRegistry = new Map();
+
+            function emojiFor(modelName) {
+                if (!modelName) return "•";
+                if (modelEmojiRegistry.has(modelName))
+                    return modelEmojiRegistry.get(modelName);
+                const next =
+                    MODEL_EMOJI_PALETTE[
+                        modelEmojiRegistry.size % MODEL_EMOJI_PALETTE.length
+                    ];
+                modelEmojiRegistry.set(modelName, next);
+                return next;
+            }
+
             function buildModelUsageRows(account) {
                 const { sessionModels = [], weeklyModels = [] } = account;
                 const allNames = [
@@ -1477,7 +1526,7 @@
                         <span>Session / Weekly requests</span>
                     </div>
                     <div class="model-usage-row model-usage-row--empty">
-                        <span class="model-usage-name">No model assigned yet</span>
+                        <span class="model-usage-name">🪐 No model assigned yet</span>
                     </div>
                 </div>`;
                 }
@@ -1505,7 +1554,7 @@
                                 : 0;
                         return `
                     <div class="model-usage-row">
-                        <span class="model-usage-name">${name}</span>
+                        <span class="model-usage-name">${emojiFor(name)} ${name}</span>
                         <div class="model-usage-bar${hasWeekly ? "" : " empty"}" aria-hidden="true"><span style="width:${widthPct}%"></span></div>
                         <div class="model-usage-counts">
                             <span class="model-usage-count">S <strong>${s}</strong></span>
@@ -1758,7 +1807,7 @@
                             sm.find((m) => m.model === n)?.requests ?? "—";
                         const wr =
                             wm.find((m) => m.model === n)?.requests ?? "—";
-                        return `S:${sr} W:${wr}`;
+                        return `${emojiFor(n)} ${n} S:${sr} W:${wr}`;
                     })
                     .join("  ");
             })()}</td>
