@@ -6,8 +6,6 @@
 
 **Your orbital command center for Multiple Ollama Cloud Accounts.**
     
-![Demo](https://github.com/user-attachments/assets/e1f4e6ad-de2a-4f04-b6ed-502bed4dbefe)
-
 </center>
 
 
