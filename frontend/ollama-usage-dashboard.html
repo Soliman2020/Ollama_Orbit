@@ -230,6 +230,56 @@
                 gap: var(--space-4);
             }
 
+            .sidebar-card.collapsible {
+                /* When collapsed, the inner content stacks into a single column
+                   so the title row and toggle sit side-by-side cleanly. */
+            }
+
+            .sidebar-card__header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: var(--space-3);
+            }
+
+            .sidebar-card__toggle {
+                background: transparent;
+                border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+                color: inherit;
+                width: 28px;
+                height: 28px;
+                border-radius: 6px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                padding: 0;
+                flex-shrink: 0;
+                transition: background 0.15s ease;
+            }
+
+            .sidebar-card__toggle:hover {
+                background: var(
+                    --color-surface-hover,
+                    rgba(255, 255, 255, 0.06)
+                );
+            }
+
+            .sidebar-card__toggle .chevron {
+                display: inline-block;
+                transition: transform 0.2s ease;
+            }
+
+            .sidebar-card[data-collapsed="true"]
+                .sidebar-card__toggle
+                .chevron {
+                transform: rotate(-90deg);
+            }
+
+            .sidebar-card[data-collapsed="true"] > :not(.sidebar-card__header) {
+                display: none;
+            }
+
             .eyebrow {
                 font-size: var(--text-xs);
                 text-transform: uppercase;
@@ -450,7 +500,57 @@
                 );
                 transition:
                     opacity var(--transition-interactive),
-                    transform var(--transition-interactive);
+                    transform var(--transition-interactive),
+                    background var(--transition-interactive);
+            }
+
+            /* Cycle each card through a small palette of soft tints so
+               accounts are easy to tell apart at a glance. The tints are
+               low-saturation washes of the existing accent colors and work
+               in both light and dark themes. */
+            .accounts-grid > .account-card:nth-of-type(6n + 1) {
+                background: color-mix(
+                    in oklab,
+                    var(--color-primary) 12%,
+                    var(--color-surface)
+                );
+            }
+            .accounts-grid > .account-card:nth-of-type(6n + 2) {
+                background: color-mix(
+                    in oklab,
+                    var(--color-success) 14%,
+                    var(--color-surface)
+                );
+            }
+            .accounts-grid > .account-card:nth-of-type(6n + 3) {
+                background: color-mix(
+                    in oklab,
+                    var(--color-warning) 14%,
+                    var(--color-surface)
+                );
+            }
+            .accounts-grid > .account-card:nth-of-type(6n + 4) {
+                background: color-mix(
+                    in oklab,
+                    var(--color-error) 12%,
+                    var(--color-surface)
+                );
+            }
+            .accounts-grid > .account-card:nth-of-type(6n + 5) {
+                background: color-mix(
+                    in oklab,
+                    var(--color-primary) 8%,
+                    var(--color-warning) 8%,
+                    var(--color-surface)
+                );
+            }
+            .accounts-grid > .account-card:nth-of-type(6n + 6) {
+                background: color-mix(
+                    in oklab,
+                    var(--color-primary) 8%,
+                    var(--color-success) 8%,
+                    var(--color-surface)
+                );
             }
 
             .account-card.disabled {
@@ -459,6 +559,9 @@
                 pointer-events: none;
                 position: relative;
                 overflow: hidden;
+                /* Disabled cards drop the cycle tint so the "Expired"
+                   stamp reads as a clear neutral state. */
+                background: var(--color-surface) !important;
             }
 
             .expired-stamp {
@@ -533,11 +636,7 @@
             .bar {
                 height: 100%;
                 border-radius: inherit;
-                background: linear-gradient(
-                    90deg,
-                    var(--color-primary),
-                    color-mix(in oklab, var(--color-primary) 60%, white 12%)
-                );
+                background: var(--bar-color, var(--color-primary));
                 width: 0;
                 transition: width 500ms cubic-bezier(0.16, 1, 0.3, 1);
             }
@@ -609,8 +708,9 @@
             }
             .model-usage-row {
                 display: flex;
-                justify-content: space-between;
+                justify-content: flex-start;
                 align-items: center;
+                gap: var(--space-3);
                 padding: 0.25rem 0.1rem;
                 font-size: var(--text-xs);
                 border-top: 1px solid var(--color-divider);
@@ -621,6 +721,40 @@
             .model-usage-name {
                 color: var(--color-text-muted);
                 font-weight: 500;
+            }
+            .model-usage-bar {
+                flex: 1;
+                margin: 0 var(--space-3);
+                height: 0.4rem;
+                border-radius: var(--radius-full);
+                background: color-mix(
+                    in oklab,
+                    var(--color-text) 8%,
+                    transparent
+                );
+                overflow: hidden;
+            }
+            .model-usage-bar > span {
+                display: block;
+                height: 100%;
+                border-radius: inherit;
+                background: linear-gradient(
+                    90deg,
+                    var(--color-primary),
+                    color-mix(in oklab, var(--color-primary) 60%, white 12%)
+                );
+                transition: width 500ms cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .model-usage-bar.empty > span {
+                background: color-mix(
+                    in oklab,
+                    var(--color-text) 14%,
+                    transparent
+                );
+            }
+            .model-usage-row--empty .model-usage-name {
+                color: var(--color-text-faint);
+                font-style: italic;
             }
             .model-usage-counts {
                 display: flex;
@@ -954,12 +1088,27 @@
                     ></button>
                 </div>
 
-                <div class="sidebar-card">
-                    <div>
-                        <div class="eyebrow">Orbit Status</div>
-                        <h2 style="margin: 0; font-size: var(--text-lg)">
-                            All accounts at a glance
-                        </h2>
+                <div
+                    class="sidebar-card collapsible"
+                    data-collapse-key="orbit-status"
+                    data-collapsed="false"
+                >
+                    <div class="sidebar-card__header">
+                        <div>
+                            <div class="eyebrow">Orbit Status</div>
+                            <h2 style="margin: 0; font-size: var(--text-lg)">
+                                All accounts at a glance
+                            </h2>
+                        </div>
+                        <button
+                            class="sidebar-card__toggle"
+                            type="button"
+                            data-collapse-toggle
+                            aria-expanded="true"
+                            aria-label="Toggle Orbit Status"
+                        >
+                            <span class="chevron" aria-hidden="true">▾</span>
+                        </button>
                     </div>
                     <p>
                         Monitor usage across all your Ollama Cloud accounts in
@@ -975,9 +1124,6 @@
                     </button>
                     <button class="nav-link" data-scroll="accounts">
                         <span>Accounts</span>
-                    </button>
-                    <button class="nav-link" data-scroll="builder">
-                        <span>Add data</span>
                     </button>
                 </nav>
 
@@ -1070,208 +1216,23 @@
                     <section id="overview" class="stack">
                         <div class="kpis" id="kpiGrid"></div>
 
-                        <div class="layout-two">
-                            <section>
-                                <div class="panel">
-                                    <div class="section-head">
-                                        <div>
-                                            <div class="eyebrow">Accounts</div>
-                                            <h2>Usage by account</h2>
-                                        </div>
-                                        <div class="subtle">
-                                            Sorted by weekly usage.
-                                        </div>
-                                    </div>
-                                    <div
-                                        id="accountsPanel"
-                                        class="accounts-grid"
-                                    ></div>
-                                </div>
-                            </section>
-
-                            <aside class="stack">
-                                <div class="builder" id="builder">
+                        <section>
+                            <div class="panel">
+                                <div class="section-head">
                                     <div>
-                                        <div class="eyebrow">Add account</div>
-                                        <h2>Paste one account snapshot</h2>
+                                        <div class="eyebrow">Accounts</div>
+                                        <h2>Usage by account</h2>
                                     </div>
-                                    <div class="hint">
-                                        Fill the form with values you read from
-                                        Ollama Settings. You can keep aliases
-                                        like Work, Backup, Team-3, or Client-A.
+                                    <div class="subtle">
+                                        Sorted by weekly usage.
                                     </div>
-                                    <form id="accountForm" class="form-grid">
-                                        <div class="field">
-                                            <label for="name"
-                                                >Account label</label
-                                            >
-                                            <input
-                                                id="name"
-                                                name="name"
-                                                placeholder="Account 1"
-                                                required
-                                            />
-                                        </div>
-                                        <div class="field">
-                                            <label for="plan">Plan</label>
-                                            <input
-                                                id="plan"
-                                                name="plan"
-                                                placeholder="Developer"
-                                                required
-                                            />
-                                        </div>
-                                        <div class="field">
-                                            <label for="sessionPercent"
-                                                >Session usage %</label
-                                            >
-                                            <input
-                                                id="sessionPercent"
-                                                name="sessionPercent"
-                                                type="number"
-                                                min="0"
-                                                max="100"
-                                                step="0.1"
-                                                placeholder="42"
-                                                required
-                                            />
-                                        </div>
-                                        <div class="field">
-                                            <label for="weeklyPercent"
-                                                >Weekly usage %</label
-                                            >
-                                            <input
-                                                id="weeklyPercent"
-                                                name="weeklyPercent"
-                                                type="number"
-                                                min="0"
-                                                max="100"
-                                                step="0.1"
-                                                placeholder="57"
-                                                required
-                                            />
-                                        </div>
-                                        <div class="field">
-                                            <label for="sessionReset"
-                                                >Session reset</label
-                                            >
-                                            <input
-                                                id="sessionReset"
-                                                name="sessionReset"
-                                                placeholder="3h 12m"
-                                                required
-                                            />
-                                        </div>
-                                        <div class="field">
-                                            <label for="weeklyReset"
-                                                >Weekly reset</label
-                                            >
-                                            <input
-                                                id="weeklyReset"
-                                                name="weeklyReset"
-                                                placeholder="5d 4h"
-                                                required
-                                            />
-                                        </div>
-                                        <div class="field span-2">
-                                            <label for="models"
-                                                >Top models</label
-                                            >
-                                            <input
-                                                id="models"
-                                                name="models"
-                                                placeholder="qwen3:32b, deepseek-r1:70b"
-                                            />
-                                        </div>
-                                        <div class="field span-2">
-                                            <label for="notes">Notes</label>
-                                            <textarea
-                                                id="notes"
-                                                name="notes"
-                                                placeholder="Optional note, client name, or collector source."
-                                            ></textarea>
-                                        </div>
-                                        <div
-                                            class="field span-2"
-                                            style="
-                                                display: flex;
-                                                gap: var(--space-3);
-                                                align-items: center;
-                                            "
-                                        >
-                                            <button
-                                                class="btn btn-primary"
-                                                type="submit"
-                                            >
-                                                Save account
-                                            </button>
-                                            <button
-                                                class="btn btn-secondary"
-                                                type="button"
-                                                id="clearBtn"
-                                            >
-                                                Clear all
-                                            </button>
-                                        </div>
-                                    </form>
                                 </div>
-
-                                <div class="panel">
-                                    <div class="section-head">
-                                        <div>
-                                            <div class="eyebrow">
-                                                Collector format
-                                            </div>
-                                            <h2>Expected JSON shape</h2>
-                                        </div>
-                                    </div>
-                                    <div class="hint">
-                                        Your future Playwright or Python
-                                        collector can overwrite the
-                                        <span class="mono">seedAccounts</span>
-                                        array with objects that follow the same
-                                        keys.
-                                    </div>
-                                    <pre
-                                        class="mono"
-                                        style="
-                                            margin: 0;
-                                            overflow: auto;
-                                            font-size: 0.84rem;
-                                            color: var(--color-text-muted);
-                                            background: var(--color-surface-2);
-                                            padding: 1rem;
-                                            border-radius: var(--radius-lg);
-                                            border: 1px solid
-                                                color-mix(
-                                                    in oklab,
-                                                    var(--color-text) 8%,
-                                                    transparent
-                                                );
-                                        "
-                                    >
-{
-  "name": "Work-01",
-  "plan": "Developer",
-  "sessionPercent": 42,
-  "weeklyPercent": 57,
-  "sessionReset": "3h 12m",
-  "weeklyReset": "5d 4h",
-  "models": ["qwen3:32b", "deepseek-r1:70b"],
-  "sessionModels": [
-    { "model": "qwen3:32b", "requests": 12 },
-    { "model": "deepseek-r1:70b", "requests": 3 }
-  ],
-  "weeklyModels": [
-    { "model": "qwen3:32b", "requests": 45 },
-    { "model": "deepseek-r1:70b", "requests": 18 }
-  ],
-  "notes": "Main client account"
-}</pre
-                                    >
-                                </div>
-                            </aside>
-                        </div>
+                                <div
+                                    id="accountsPanel"
+                                    class="accounts-grid"
+                                ></div>
+                            </div>
+                        </section>
                     </section>
 
                     <section id="accounts" class="stack">
@@ -1312,29 +1273,43 @@
                     <section class="panel">
                         <div class="section-head">
                             <div>
-                                <div class="eyebrow">Implementation notes</div>
-                                <h2>How to connect it later</h2>
+                                <div class="eyebrow">Collector pipeline</div>
+                                <h2>How the live data gets here</h2>
                             </div>
                         </div>
                         <ul class="tips-list">
                             <li>
-                                Use one Playwright browser profile per Ollama
-                                account so each session stays signed in.
+                                Add each Ollama account to app/config.py with
+                                its name, plan, and storage path. Pull
+                                credentials from .env (e.g. OLLAMA_EMAIL_1,
+                                OLLAMA_PASSWORD_1).
                             </li>
                             <li>
-                                Visit the settings page for each account and
-                                extract session usage, weekly usage, reset text,
-                                and model names.
+                                Run python -m app.collector --manual once per
+                                account. A real browser opens, you complete the
+                                Cloudflare-protected sign-in yourself, and the
+                                authenticated storage_state is saved to disk.
+                                Re-run with --manual-account &lt;name&gt; to
+                                refresh an expired session.
                             </li>
                             <li>
-                                Write the data to a JSON file, then replace the
-                                sample array in this page or load it with a
-                                simple fetch endpoint.
+                                Start the FastAPI backend with uvicorn
+                                app.main:app. It scrapes
+                                https://ollama.com/settings for every account
+                                and exposes the snapshot at GET /usage.
                             </li>
                             <li>
-                                Schedule refresh every 30 to 60 minutes if you
-                                want a lightweight monitor instead of real-time
-                                polling.
+                                APScheduler refreshes the in-memory cache every
+                                REFRESH_MINUTES (default: 2). Point the Backend
+                                URL field at http://127.0.0.1:8000 and click
+                                Refresh live data.
+                            </li>
+                            <li>
+                                Scraped fields: sessionPercent, weeklyPercent,
+                                sessionReset, weeklyReset, plus per-model
+                                request counts parsed from the
+                                [data-usage-segment] elements on the settings
+                                page.
                             </li>
                         </ul>
                     </section>
@@ -1428,7 +1403,6 @@
             const lastUpdated = $("#lastUpdated");
             const connectionStatus = $("#connectionStatus");
             const apiBaseUrlInput = $("#apiBaseUrl");
-            const form = $("#accountForm");
 
             function setThemeIcon() {
                 const btn = document.querySelector("[data-theme-toggle]");
@@ -1449,6 +1423,14 @@
                     return { label: "Critical", className: "high" };
                 if (value >= 75) return { label: "Watch", className: "warn" };
                 return { label: "Healthy", className: "ok" };
+            }
+
+            function getBarColor(value) {
+                // Color tiers: 0-25% green, 26-50% amber, 51-75% pink, 76-100% teal.
+                if (value <= 25) return "var(--color-success)";
+                if (value <= 50) return "var(--color-warning)";
+                if (value <= 75) return "var(--color-error)";
+                return "var(--color-primary)";
             }
 
             function number(value) {
@@ -1479,13 +1461,35 @@
 
             function buildModelUsageRows(account) {
                 const { sessionModels = [], weeklyModels = [] } = account;
-                if (!sessionModels.length && !weeklyModels.length) return "";
                 const allNames = [
                     ...new Set([
                         ...sessionModels.map((m) => m.model),
                         ...weeklyModels.map((m) => m.model),
                     ]),
                 ];
+                // Empty-state row so the panel still anchors the card even
+                // when no model has been logged for this account.
+                if (!allNames.length) {
+                    return `
+                <div class="model-usage">
+                    <div class="model-usage-header">
+                        <span>Model</span>
+                        <span>Session / Weekly requests</span>
+                    </div>
+                    <div class="model-usage-row model-usage-row--empty">
+                        <span class="model-usage-name">No model assigned yet</span>
+                    </div>
+                </div>`;
+                }
+                // Bar width reflects each model's share of weekly usage.
+                // 100% of the bar = the heaviest model in this account.
+                const weeklyTotals = allNames.map((name) => {
+                    const w = weeklyModels.find(
+                        (m) => m.model === name,
+                    )?.requests;
+                    return typeof w === "number" ? w : 0;
+                });
+                const maxWeekly = Math.max(0, ...weeklyTotals);
                 const rows = allNames
                     .map((name) => {
                         const s =
@@ -1494,9 +1498,15 @@
                         const w =
                             weeklyModels.find((m) => m.model === name)
                                 ?.requests ?? "—";
+                        const hasWeekly = typeof w === "number";
+                        const widthPct =
+                            hasWeekly && maxWeekly > 0
+                                ? Math.max(2, (w / maxWeekly) * 100)
+                                : 0;
                         return `
                     <div class="model-usage-row">
                         <span class="model-usage-name">${name}</span>
+                        <div class="model-usage-bar${hasWeekly ? "" : " empty"}" aria-hidden="true"><span style="width:${widthPct}%"></span></div>
                         <div class="model-usage-counts">
                             <span class="model-usage-count">S <strong>${s}</strong></span>
                             <span class="model-usage-count">W <strong>${w}</strong></span>
@@ -1539,12 +1549,15 @@
                         }));
                 };
                 const models = normalizeModelList(account.models);
-                const sessionModels = normalizeModelUsage(account.sessionModels);
+                const sessionModels = normalizeModelUsage(
+                    account.sessionModels,
+                );
                 const weeklyModels = normalizeModelUsage(account.weeklyModels);
                 // If sessionModels/weeklyModels are present but top-level
                 // models is empty, derive it from the union.
                 const derivedModels =
-                    models.length || !sessionModels.length + !weeklyModels.length
+                    models.length ||
+                    !sessionModels.length + !weeklyModels.length
                         ? models
                         : [
                               ...new Set([
@@ -1677,7 +1690,14 @@
 
                 accountsPanel.innerHTML = sorted
                     .map((account) => {
-                        const weeklyStatus = getStatus(account.weeklyPercent);
+                        // The card's overall status reflects the worst of
+                        // the two meters — a red session bar with a green
+                        // weekly bar is still a critical account.
+                        const overallPercent = Math.max(
+                            Number(account.weeklyPercent) || 0,
+                            Number(account.sessionPercent) || 0,
+                        );
+                        const weeklyStatus = getStatus(overallPercent);
                         return `
           <article class="account-card${account.weeklyPercent >= 100 ? " disabled" : ""}">
                     ${account.weeklyPercent >= 100 ? '<div class="expired-stamp">Expired</div>' : ""}
@@ -1691,11 +1711,11 @@
             <div class="usage-block">
               <div class="metric-row">
                 <div class="metric-line"><span>Session</span><strong class="mono">${number(account.sessionPercent)}</strong></div>
-                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(account.sessionPercent, 100))}%;"></div></div>
+                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(account.sessionPercent, 100))}%; --bar-color: ${getBarColor(account.sessionPercent)};"></div></div>
               </div>
               <div class="metric-row">
                 <div class="metric-line"><span>Weekly</span><strong class="mono">${number(account.weeklyPercent)}</strong></div>
-                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(account.weeklyPercent, 100))}%;"></div></div>
+                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(account.weeklyPercent, 100))}%; --bar-color: ${getBarColor(account.weeklyPercent)};"></div></div>
               </div>
             </div>
             <div class="metric-line subtle"><span>Session reset</span><span class="mono">${account.sessionReset}</span></div>
@@ -1726,12 +1746,21 @@
                 const sm = account.sessionModels || [];
                 const wm = account.weeklyModels || [];
                 if (!sm.length && !wm.length) return "—";
-                const names = [...new Set([...sm.map(m => m.model), ...wm.map(m => m.model)])];
-                return names.map(n => {
-                    const sr = sm.find(m => m.model === n)?.requests ?? "—";
-                    const wr = wm.find(m => m.model === n)?.requests ?? "—";
-                    return `S:${sr} W:${wr}`;
-                }).join("  ");
+                const names = [
+                    ...new Set([
+                        ...sm.map((m) => m.model),
+                        ...wm.map((m) => m.model),
+                    ]),
+                ];
+                return names
+                    .map((n) => {
+                        const sr =
+                            sm.find((m) => m.model === n)?.requests ?? "—";
+                        const wr =
+                            wm.find((m) => m.model === n)?.requests ?? "—";
+                        return `S:${sr} W:${wr}`;
+                    })
+                    .join("  ");
             })()}</td>
             <td><span class="status-pill ${status.className}">${status.label}</span></td>
           </tr>
@@ -1810,6 +1839,43 @@
                     setThemeIcon();
                 });
 
+            // Wire up collapsible sidebar cards. Each card with the
+            // `.collapsible` class + `data-collapse-key` attribute becomes
+            // a disclosure whose expanded state persists in localStorage.
+            const COLLAPSE_STORAGE_PREFIX = "orbit-sidebar-collapse:";
+            document
+                .querySelectorAll(
+                    ".sidebar-card.collapsible[data-collapse-key]",
+                )
+                .forEach((card) => {
+                    const key = card.dataset.collapseKey;
+                    const toggle = card.querySelector("[data-collapse-toggle]");
+                    if (!toggle) return;
+
+                    // Restore persisted state (default: expanded).
+                    const stored = localStorage.getItem(
+                        COLLAPSE_STORAGE_PREFIX + key,
+                    );
+                    const collapsed = stored === "true";
+                    card.dataset.collapsed = String(collapsed);
+                    toggle.setAttribute("aria-expanded", String(!collapsed));
+
+                    toggle.addEventListener("click", () => {
+                        const isCollapsed = card.dataset.collapsed === "true";
+                        const next = !isCollapsed;
+                        card.dataset.collapsed = String(next);
+                        toggle.setAttribute("aria-expanded", String(!next));
+                        try {
+                            localStorage.setItem(
+                                COLLAPSE_STORAGE_PREFIX + key,
+                                String(next),
+                            );
+                        } catch (_) {
+                            // Ignore storage errors (private mode, quota, etc.)
+                        }
+                    });
+                });
+
             document.querySelectorAll("[data-scroll]").forEach((button) => {
                 button.addEventListener("click", () => {
                     document
@@ -1821,44 +1887,6 @@
                         .scrollIntoView({ behavior: "smooth", block: "start" });
                 });
             });
-
-            form.addEventListener("submit", (event) => {
-                event.preventDefault();
-                const data = new FormData(form);
-                const modelNames = data
-                    .get("models")
-                    .toString()
-                    .split(",")
-                    .map((item) => item.trim())
-                    .filter(Boolean);
-                accounts.push({
-                    name: data.get("name").toString().trim(),
-                    plan: data.get("plan").toString().trim(),
-                    sessionPercent: Number(data.get("sessionPercent")),
-                    weeklyPercent: Number(data.get("weeklyPercent")),
-                    sessionReset: data.get("sessionReset").toString().trim(),
-                    weeklyReset: data.get("weeklyReset").toString().trim(),
-                    models: modelNames,
-                    sessionModels: modelNames.map((m) => ({
-                        model: m,
-                        requests: 0,
-                    })),
-                    weeklyModels: modelNames.map((m) => ({
-                        model: m,
-                        requests: 0,
-                    })),
-                    notes: data.get("notes").toString().trim(),
-                });
-                form.reset();
-                renderAll();
-            });
-
-            document
-                .getElementById("clearBtn")
-                .addEventListener("click", () => {
-                    accounts = [];
-                    renderAll();
-                });
 
             document
                 .getElementById("loadSampleBtn")
