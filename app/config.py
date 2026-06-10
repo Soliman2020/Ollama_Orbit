@@ -48,7 +48,7 @@ ACCOUNTS: List[Dict] = [
     },
     {
         "name": "gmail",
-        "plan": "Free",
+        "plan": "Pro-09June",
         "email": os.getenv("OLLAMA_EMAIL_6"),  # example, replace per account
         "password": os.getenv("OLLAMA_PASSWORD_6"),
         "storage": "app/state_account_6.json",
@@ -57,7 +57,7 @@ ACCOUNTS: List[Dict] = [
 ]
 
 # How often to refresh the usage snapshot (in minutes).
-REFRESH_MINUTES: int = 10
+REFRESH_MINUTES: int = 2
 
 # URL of the Ollama settings usage page.
 SETTINGS_URL: str = "https://ollama.com/settings"

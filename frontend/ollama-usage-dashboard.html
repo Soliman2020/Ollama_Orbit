@@ -1131,6 +1131,7 @@
                                                 type="number"
                                                 min="0"
                                                 max="100"
+                                                step="0.1"
                                                 placeholder="42"
                                                 required
                                             />
@@ -1145,6 +1146,7 @@
                                                 type="number"
                                                 min="0"
                                                 max="100"
+                                                step="0.1"
                                                 placeholder="57"
                                                 required
                                             />
@@ -1450,7 +1452,7 @@
             }
 
             function number(value) {
-                return `${Math.round(value)}%`;
+                return `${value}%`;
             }
 
             function modelMarkup(models, countsMap = null) {

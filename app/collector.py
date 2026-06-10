@@ -3,6 +3,7 @@ import asyncio
 import json
 import os
 import re
+import time
 from typing import Dict, List
 
 from playwright.async_api import async_playwright
@@ -198,10 +199,12 @@ async def scrape_account(page, name: str, plan: str) -> Dict:
                         req_count = int(requests_str)
                     except ValueError:
                         req_count = 0
-                    models_for_meter.append({
-                        "model": model_name,
-                        "requests": req_count,
-                    })
+                    models_for_meter.append(
+                        {
+                            "model": model_name,
+                            "requests": req_count,
+                        }
+                    )
 
             if "Session" in aria_label:
                 session_models = models_for_meter
@@ -217,8 +220,8 @@ async def scrape_account(page, name: str, plan: str) -> Dict:
     return {
         "name": name,
         "plan": plan,
-        "sessionPercent": round(session_percent),
-        "weeklyPercent": round(weekly_percent),
+        "sessionPercent": session_percent,
+        "weeklyPercent": weekly_percent,
         "sessionReset": session_reset,
         "weeklyReset": weekly_reset,
         "models": sorted(all_model_names) if all_model_names else [],
@@ -272,7 +275,9 @@ async def collect_usage() -> List[Dict]:
             try:
                 data = await scrape_account(page, cfg["name"], cfg["plan"])
                 results.append(data)
-                print(f"[ok] Collected usage for {cfg['name']}")
+                print(
+                    f"[ok] Collected usage for {cfg['name']} @ {time.strftime('%Y-%m-%d %H:%M:%S')}."
+                )
             except Exception as exc:
                 print(f"[error] Failed to collect {cfg['name']}: {exc}")
                 results.append(
