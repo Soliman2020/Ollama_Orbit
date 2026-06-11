@@ -907,6 +907,132 @@
                 background: var(--color-primary);
             }
 
+            /* Styles for the Ollama Cloud Models table */
+            .model-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: var(--space-3);
+                font-size: var(--text-xs);
+            }
+
+            .model-table th,
+            .model-table td {
+                padding: 0.5rem 0.75rem;
+                text-align: left;
+                border-bottom: 1px solid
+                    color-mix(in oklab, var(--color-text) 8%, transparent);
+            }
+
+            .model-table th {
+                color: var(--color-text-muted);
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                background: color-mix(
+                    in oklab,
+                    var(--color-surface-2) 70%,
+                    transparent
+                );
+            }
+
+            .model-table tbody tr:hover {
+                background: color-mix(
+                    in oklab,
+                    var(--color-primary) 4%,
+                    var(--color-surface-2)
+                );
+            }
+
+            .model-table .status-ok {
+                color: var(--color-success);
+                font-weight: 500;
+            }
+
+            .model-table .status-error {
+                color: var(--color-error);
+                font-weight: 500;
+            }
+
+            /* Sidebar card styled as a button (opens the tiers modal). */
+            .sidebar-card--button {
+                text-align: left;
+                cursor: pointer;
+                font: inherit;
+                color: inherit;
+                width: 100%;
+            }
+            .sidebar-card--button:hover {
+                background: var(--color-surface-2);
+            }
+
+            /* Floating modal */
+            .modal-backdrop {
+                position: fixed;
+                inset: 0;
+                background: oklch(0 0 0 / 0.55);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 100;
+                padding: var(--space-5);
+                backdrop-filter: blur(4px);
+            }
+            .modal-backdrop[data-open="true"] {
+                display: flex;
+            }
+            .modal {
+                background: var(--color-surface);
+                border: 1px solid
+                    color-mix(in oklab, var(--color-text) 12%, transparent);
+                border-radius: var(--radius-xl);
+                box-shadow: var(--shadow-lg);
+                width: min(720px, 100%);
+                max-height: min(80vh, 720px);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .modal__header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: var(--space-4);
+                padding: var(--space-5);
+                border-bottom: 1px solid
+                    color-mix(in oklab, var(--color-text) 8%, transparent);
+            }
+            .modal__header h2 {
+                margin: 0;
+                font-size: var(--text-lg);
+                line-height: 1.2;
+            }
+            .modal__close {
+                background: var(--color-surface-2);
+                border: 1px solid
+                    color-mix(in oklab, var(--color-text) 10%, transparent);
+                color: inherit;
+                width: 36px;
+                height: 36px;
+                border-radius: var(--radius-full);
+                display: inline-grid;
+                place-items: center;
+                cursor: pointer;
+                font-size: 1.2rem;
+                line-height: 1;
+                flex-shrink: 0;
+            }
+            .modal__close:hover {
+                background: var(--color-surface-offset);
+            }
+            .modal__body {
+                padding: var(--space-5);
+                overflow-y: auto;
+            }
+            .modal .model-table {
+                margin-top: 0;
+                font-size: var(--text-sm);
+            }
+
             .empty {
                 padding: var(--space-10);
                 text-align: center;
@@ -1127,6 +1253,25 @@
                     </button>
                 </nav>
 
+                <!-- Trigger: opens the Free vs Paid Tiers modal -->
+                <button
+                    type="button"
+                    class="sidebar-card sidebar-card--button"
+                    data-open-modal="modelTiersModal"
+                    aria-haspopup="dialog"
+                >
+                    <div>
+                        <div class="eyebrow">Ollama Cloud Models</div>
+                        <h2 style="margin: 0; font-size: var(--text-lg)">
+                            Free vs Paid Tiers
+                        </h2>
+                    </div>
+                    <p>
+                        See which cloud models you can use on a free Ollama
+                        account and which require a paid plan.
+                    </p>
+                </button>
+
                 <div class="sidebar-card">
                     <div>
                         <div class="eyebrow">Getting started</div>
@@ -1321,6 +1466,273 @@
                     </div>
                 </div>
             </main>
+        </div>
+
+        <!-- Free vs Paid Tiers modal -->
+        <div
+            class="modal-backdrop"
+            id="modelTiersModal"
+            data-open="false"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modelTiersModalTitle"
+        >
+            <div class="modal" role="document">
+                <div class="modal__header">
+                    <div>
+                        <div class="eyebrow">Ollama Cloud Models</div>
+                        <h2 id="modelTiersModalTitle">Free vs Paid Tiers</h2>
+                    </div>
+                    <button
+                        type="button"
+                        class="modal__close"
+                        data-close-modal
+                        aria-label="Close"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div class="modal__body">
+                    <table class="model-table">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>rnj-1:8b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>qwen3-vl:235b-instruct</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>qwen3-vl:235b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>qwen3-next:80b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>qwen3-coder:480b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>qwen3-coder-next</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>nemotron-3-ultra</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>nemotron-3-super</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>nemotron-3-nano:30b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ministral-3:8b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ministral-3:3b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ministral-3:14b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>minimax-m3</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>minimax-m2.5</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>minimax-m2.1</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>minimax-m2</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>gpt-oss:20b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>gpt-oss:120b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>glm-4.7</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>glm-4.6</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>gemma4:31b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>devstral-small-2:24b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>devstral-2:123b</td>
+                                <td class="status-ok">
+                                    Available in Free Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>qwen3.5</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>qwen3.5:397b</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>mistral-large-3:675b</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>minimax-m2.7</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>kimi-k2.6</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>kimi-k2.5</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>kimi-k2:1t</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>kimi-k2-thinking</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>glm-5.1</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>glm-5</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>gemini-3-flash-preview</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>deepseek-v4-pro</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>deepseek-v4-flash</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>deepseek-v3.2</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>deepseek-v3.1:671b</td>
+                                <td class="status-error">
+                                    Paid account required
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <script>
@@ -1952,6 +2364,36 @@
             document
                 .getElementById("exportBtn")
                 .addEventListener("click", exportJson);
+
+            // Modal open/close for the Free vs Paid Tiers table.
+            document
+                .querySelector("[data-open-modal]")
+                .addEventListener("click", function () {
+                    document
+                        .getElementById(this.dataset.openModal)
+                        .setAttribute("data-open", "true");
+                });
+            document.querySelectorAll("[data-close-modal]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const modal = btn.closest(".modal-backdrop");
+                    if (modal) modal.setAttribute("data-open", "false");
+                });
+            });
+            // Close modal on backdrop click.
+            document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+                backdrop.addEventListener("click", (e) => {
+                    if (e.target === backdrop)
+                        backdrop.setAttribute("data-open", "false");
+                });
+            });
+            // Close modal on Escape key.
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    document
+                        .querySelectorAll('.modal-backdrop[data-open="true"]')
+                        .forEach((m) => m.setAttribute("data-open", "false"));
+                }
+            });
 
             setThemeIcon();
             loadLiveData();
