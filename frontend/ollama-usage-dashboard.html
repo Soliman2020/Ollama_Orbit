@@ -2221,8 +2221,10 @@
                     return;
                 }
 
-                const sorted = [...accounts].sort(
-                    (a, b) => b.weeklyPercent - a.weeklyPercent,
+                const sorted = [...accounts].sort((a, b) =>
+                    showRemaining
+                        ? a.weeklyPercent - b.weeklyPercent
+                        : b.weeklyPercent - a.weeklyPercent,
                 );
 
                 accountsPanel.innerHTML = sorted
