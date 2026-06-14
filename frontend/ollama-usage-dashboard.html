@@ -1888,11 +1888,19 @@
             }
 
             function displayColor(consumed) {
-                // ponytail: color is based on remaining percentage.
-                const v = Math.round(displayPercent(consumed));
-                if (v >= 75) return "var(--color-success)";
-                if (v >= 50) return "var(--color-warning)";
-                if (v >= 25) return "var(--color-caution)";
+                // ponytail: color meaning flips with the toggle.
+                // Left mode: high remaining = green, low remaining = red.
+                // Used mode: low usage = green, high usage = red.
+                const v = displayPercent(consumed);
+                if (showRemaining) {
+                    if (v >= 75) return "var(--color-success)";
+                    if (v >= 50) return "var(--color-warning)";
+                    if (v >= 25) return "var(--color-caution)";
+                    return "var(--color-error)";
+                }
+                if (v <= 25) return "var(--color-success)";
+                if (v <= 50) return "var(--color-warning)";
+                if (v <= 75) return "var(--color-caution)";
                 return "var(--color-error)";
             }
 
