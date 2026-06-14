@@ -51,7 +51,8 @@
                 --color-primary-active: #0f3638;
                 --color-primary-highlight: #cedcd8;
                 --color-success: #437a22;
-                --color-warning: #964219;
+                --color-warning: #b07018;
+                --color-caution: #6b3d1f;
                 --color-error: #a12c7b;
                 --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
                 --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
@@ -79,6 +80,7 @@
                 --color-primary-highlight: #313b3b;
                 --color-success: #6daa45;
                 --color-warning: #e39a67;
+                --color-caution: #9e6b4a;
                 --color-error: #d163a7;
                 --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
                 --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
@@ -1312,6 +1314,40 @@
                     </div>
                 </div>
                 <div class="header-actions">
+                    <label class="pill" style="cursor: pointer; gap: 0.55rem">
+                        <span aria-hidden="true">⚡</span>
+                        <span id="viewToggleLabel">Used</span>
+                        <input
+                            id="viewToggle"
+                            type="checkbox"
+                            style="display: none"
+                        />
+                        <span
+                            id="viewToggleSwitch"
+                            style="
+                                display: inline-block;
+                                width: 2.25rem;
+                                height: 1.25rem;
+                                border-radius: 999px;
+                                background: var(--color-divider);
+                                position: relative;
+                                transition: background 180ms ease;
+                            "
+                        >
+                            <span
+                                style="
+                                    position: absolute;
+                                    top: 0.15rem;
+                                    left: 0.15rem;
+                                    width: 0.95rem;
+                                    height: 0.95rem;
+                                    border-radius: 50%;
+                                    background: var(--color-surface);
+                                    transition: transform 180ms ease;
+                                "
+                            ></span>
+                        </span>
+                    </label>
                     <span class="pill"
                         ><span aria-hidden="true">●</span
                         ><span id="lastUpdated">Orbiting…</span></span
@@ -1806,6 +1842,7 @@
             ];
 
             let accounts = [...seedAccounts];
+            let showRemaining = false;
 
             const $ = (selector) => document.querySelector(selector);
             const kpiGrid = $("#kpiGrid");
@@ -1845,8 +1882,29 @@
                 return "var(--color-primary)";
             }
 
+            function displayPercent(consumed) {
+                const value = Math.max(0, Math.min(Number(consumed) || 0, 100));
+                return showRemaining ? 100 - value : value;
+            }
+
+            function displayColor(consumed) {
+                // ponytail: color is based on remaining percentage.
+                const v = Math.round(displayPercent(consumed));
+                if (v >= 75) return "var(--color-success)";
+                if (v >= 50) return "var(--color-warning)";
+                if (v >= 25) return "var(--color-caution)";
+                return "var(--color-error)";
+            }
+
+            function fmtPercent(value) {
+                const num = Number(value);
+                if (Number.isNaN(num)) return "—";
+                const fixed = num.toFixed(1);
+                return fixed.endsWith(".0") ? String(num) : fixed;
+            }
+
             function number(value) {
-                return `${value}%`;
+                return `${fmtPercent(value)}%`;
             }
 
             function modelMarkup(models, countsMap = null) {
@@ -2090,24 +2148,40 @@
                             : "Add your first account",
                     },
                     {
-                        label: "Average weekly load",
-                        value: `${avgWeekly}%`,
+                        label: showRemaining
+                            ? "Average weekly remaining"
+                            : "Average weekly load",
+                        value: showRemaining
+                            ? `${100 - avgWeekly}%`
+                            : `${avgWeekly}%`,
                         detail: total
                             ? "Across all visible accounts"
                             : "No data yet",
                     },
                     {
-                        label: "Highest weekly use",
-                        value: `${highestWeekly}%`,
+                        label: showRemaining
+                            ? "Lowest weekly remaining"
+                            : "Highest weekly use",
+                        value: showRemaining
+                            ? `${100 - highestWeekly}%`
+                            : `${highestWeekly}%`,
                         detail: total
-                            ? "Fastest path to the limit"
+                            ? showRemaining
+                                ? "Account closest to the limit"
+                                : "Fastest path to the limit"
                             : "No data yet",
                     },
                     {
-                        label: "Highest session use",
-                        value: `${highestSession}%`,
+                        label: showRemaining
+                            ? "Lowest session remaining"
+                            : "Highest session use",
+                        value: showRemaining
+                            ? `${100 - highestSession}%`
+                            : `${highestSession}%`,
                         detail: total
-                            ? "Useful for short reset cycles"
+                            ? showRemaining
+                                ? "Account closest to the limit"
+                                : "Useful for short reset cycles"
                             : "No data yet",
                     },
                 ];
@@ -2127,7 +2201,9 @@
                 quickStats.innerHTML = [
                     ["Accounts", total],
                     ["At watch level", watchCount],
-                    ["Top weekly", `${highestWeekly}%`],
+                    showRemaining
+                        ? ["Lowest weekly", `${100 - highestWeekly}%`]
+                        : ["Top weekly", `${highestWeekly}%`],
                 ]
                     .map(
                         ([label, value]) =>
@@ -2151,12 +2227,18 @@
 
                 accountsPanel.innerHTML = sorted
                     .map((account) => {
+                        // ponytail: if weekly is exhausted, treat session as
+                        // fully consumed too so the whole card reads "dead".
+                        const effectiveSessionPercent =
+                            account.weeklyPercent >= 100
+                                ? 100
+                                : Number(account.sessionPercent) || 0;
                         // The card's overall status reflects the worst of
                         // the two meters — a red session bar with a green
                         // weekly bar is still a critical account.
                         const overallPercent = Math.max(
                             Number(account.weeklyPercent) || 0,
-                            Number(account.sessionPercent) || 0,
+                            effectiveSessionPercent,
                         );
                         const weeklyStatus = getStatus(overallPercent);
                         return `
@@ -2171,14 +2253,16 @@
             </div>
             <div class="usage-block">
               <div class="metric-row">
-                <div class="metric-line"><span>Session</span><strong class="mono">${number(account.sessionPercent)}</strong></div>
-                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(account.sessionPercent, 100))}%; --bar-color: ${getBarColor(account.sessionPercent)};"></div></div>
+                <div class="metric-line"><span>${showRemaining ? "Session remaining" : "Session used"}</span><strong class="mono">${number(displayPercent(effectiveSessionPercent))}</strong></div>
+                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(displayPercent(effectiveSessionPercent), 100))}%; --bar-color: ${displayColor(effectiveSessionPercent)};"></div></div>
               </div>
               <div class="metric-row">
-                <div class="metric-line"><span>Weekly</span><strong class="mono">${number(account.weeklyPercent)}</strong></div>
-                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(account.weeklyPercent, 100))}%; --bar-color: ${getBarColor(account.weeklyPercent)};"></div></div>
+                <div class="metric-line"><span>${showRemaining ? "Weekly remaining" : "Weekly used"}</span><strong class="mono">${number(displayPercent(account.weeklyPercent))}</strong></div>
+                <div class="progress"><div class="bar" style="width:${Math.max(0, Math.min(displayPercent(account.weeklyPercent), 100))}%; --bar-color: ${displayColor(account.weeklyPercent)};"></div></div>
               </div>
             </div>
+            <div class="metric-line subtle"><span>${showRemaining ? "Consumed session" : "Remaining session"}</span><span class="mono">${number(showRemaining ? effectiveSessionPercent : 100 - effectiveSessionPercent)}</span></div>
+            <div class="metric-line subtle"><span>${showRemaining ? "Consumed weekly" : "Remaining weekly"}</span><span class="mono">${number(showRemaining ? account.weeklyPercent : 100 - account.weeklyPercent)}</span></div>
             <div class="metric-line subtle"><span>Session reset</span><span class="mono">${account.sessionReset}</span></div>
             <div class="metric-line subtle"><span>Weekly reset</span><span class="mono">${account.weeklyReset}</span></div>
             ${buildModelUsageRows(account)}
@@ -2190,9 +2274,13 @@
 
                 accountsTableBody.innerHTML = sorted
                     .map((account, index) => {
+                        const tableSessionPercent =
+                            account.weeklyPercent >= 100
+                                ? 100
+                                : account.sessionPercent;
                         const status = getStatus(
                             Math.max(
-                                account.sessionPercent,
+                                tableSessionPercent,
                                 account.weeklyPercent,
                             ),
                         );
@@ -2200,8 +2288,8 @@
           <tr>
             <td><strong>${account.name}</strong><br><span class="subtle">#${index + 1}</span></td>
             <td>${account.plan}</td>
-            <td class="mono">${number(account.sessionPercent)}</td>
-            <td class="mono">${number(account.weeklyPercent)}</td>
+            <td class="mono">${number(displayPercent(tableSessionPercent))}</td>
+            <td class="mono">${number(displayPercent(account.weeklyPercent))}</td>
             <td><span class="mono">${account.sessionReset}</span> / <span class="mono">${account.weeklyReset}</span></td>
             <td class="mono">${(() => {
                 const sm = account.sessionModels || [];
@@ -2360,6 +2448,21 @@
             document
                 .getElementById("refreshBtn")
                 .addEventListener("click", loadLiveData);
+
+            const viewToggle = document.getElementById("viewToggle");
+            const viewToggleLabel = document.getElementById("viewToggleLabel");
+            const viewToggleSwitch =
+                document.getElementById("viewToggleSwitch");
+            viewToggle.addEventListener("change", () => {
+                showRemaining = viewToggle.checked;
+                viewToggleLabel.textContent = showRemaining ? "Left" : "Used";
+                viewToggleSwitch.style.background = showRemaining
+                    ? "var(--color-primary)"
+                    : "var(--color-divider)";
+                viewToggleSwitch.firstElementChild.style.transform =
+                    showRemaining ? "translateX(1rem)" : "translateX(0)";
+                renderAll();
+            });
 
             document
                 .getElementById("exportBtn")
