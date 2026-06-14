@@ -102,6 +102,8 @@ ollama_dashboard/
 │  ├── KPI cards: tracked accounts, avg/highest usage          │
 │  ├── Cards View: session/weekly bars + reset timers          │
 │  ├── Table View: side-by-side comparison                     │
+│  ├── Used/Left toggle: flip consumed ↔ remaining view       │
+│  ├── Free vs Paid Tiers modal: model availability at a glance│
 │  ├── Dark/Light theme toggle                                 │
 │  └── Connected directly to /usage API                        │
 └──────────────────────────────────────────────────────────────┘
@@ -114,6 +116,9 @@ ollama_dashboard/
 - **🚀 Multi-account orbit** — Monitor unlimited Ollama Cloud accounts from one screen
 - **📊 Real-time KPIs** — Average load, highest usage, accounts needing attention
 - **🤖 Per-model usage tracking** — See exactly which models you used (session + weekly request counts) with consistent emoji icons across accounts
+- **🔄 Used / Left toggle** — Flip between consumed and remaining views; all bars, percentages, KPIs, and sorting adapt instantly
+- **🎨 Color-flip logic** — Colors flip meaning with the toggle: green = low usage (Used mode) or high remaining (Left mode), red = the opposite
+- **🏷️ Free vs Paid Tiers modal** — Floating modal listing every Ollama Cloud model and whether it's available on a free account or requires a paid plan
 - **🎨 Tiered usage bars** — Progress bars colored by usage level: green (0-25%), amber (26-50%), pink (51-75%), teal (76-100%)
 - **💳 Account card accents** — Each account card gets a distinct pastel background tint so accounts are easy to distinguish
 - **🌙 Dark & light themes** — Built-in theme toggle for day/night usage
