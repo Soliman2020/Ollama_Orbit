@@ -2253,7 +2253,7 @@
                         const weeklyStatus = getStatus(overallPercent);
                         return `
           <article class="account-card${account.weeklyPercent >= 100 ? " disabled" : ""}">
-                    ${account.weeklyPercent >= 100 ? '<div class="expired-stamp">Expired</div>' : ""}
+                    ${account.weeklyPercent >= 100 ? '<div class="expired-stamp">Out of tokens</div>' : ""}
             <div class="account-top">
               <div>
                 <p class="account-name">${account.name}</p>
