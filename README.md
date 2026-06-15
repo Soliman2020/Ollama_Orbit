@@ -127,6 +127,17 @@ ollama_dashboard/
 - **📤 Export to JSON** — Download your account data anytime
 - **🔄 Auto-refresh** — Scheduler in backend keeps data current (configurable interval)
 
+### Historical analytics
+
+Every refresh writes a snapshot to `data/orbit.db`. A minimal Streamlit companion reads the new `GET /usage/history` endpoint and renders three tabs: weekly trend, model breakdown, leaderboard.
+
+```bash
+pip install -r requirements.txt
+streamlit run analytics.py
+```
+
+Open http://localhost:8501. Point at a non-default backend with `ORBIT_URL=http://host:port streamlit run analytics.py`.
+
 ---
 
 ## Prerequisites

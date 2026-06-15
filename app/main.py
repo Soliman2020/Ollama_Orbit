@@ -17,6 +17,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import history
 from .collector import collect_usage, ensure_states_for_all_accounts
 from .config import REFRESH_MINUTES
 
@@ -26,6 +27,8 @@ from .config import REFRESH_MINUTES
 
 usage_cache: List[Dict] = []
 last_error: Optional[str] = None
+DB_PATH = "data/orbit.db"
+history.init_db(DB_PATH)
 
 
 # ---------------------------------------------------------------------------
@@ -43,6 +46,12 @@ async def refresh_usage() -> None:
         data = await collect_usage()
         usage_cache = data
         last_error = None
+        # Persist a snapshot for the analytics dashboard. Failures here
+        # must not break the scheduler, so swallow + log.
+        try:
+            await asyncio.to_thread(history.record_snapshot, DB_PATH, data)
+        except Exception as exc:
+            print(f"[history] record failed: {exc}")
     except Exception as exc:
         last_error = str(exc)
         print(f"[error] refresh_usage failed: {exc}")
@@ -110,3 +119,13 @@ async def get_usage():
 async def root():
     """Health check endpoint."""
     return {"status": "ok", "accounts": len(usage_cache)}
+
+
+@app.get("/usage/history")
+async def usage_history(days: int = 7):
+    """Return historical snapshots for the analytics dashboard.
+
+    Capped at 90 days to bound payload size; minimum 1.
+    """
+    days = max(1, min(days, 90))
+    return await asyncio.to_thread(history.read_history, DB_PATH, days)

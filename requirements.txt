@@ -3,3 +3,5 @@ uvicorn[standard]
 playwright
 apscheduler
 python-dotenv
+streamlit
+pandas
