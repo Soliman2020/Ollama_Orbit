@@ -494,6 +494,14 @@
                 gap: var(--space-4);
             }
 
+            /* ponytail: every account shares the same session/weekly reset
+               window, so show it once here instead of on each account card. */
+            .reset-cards {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: var(--space-4);
+            }
+
             .panel {
                 padding: var(--space-5);
             }
@@ -1488,6 +1496,8 @@
                     <section id="overview" class="stack">
                         <div class="kpis" id="kpiGrid"></div>
 
+                        <div class="reset-cards" id="resetCards"></div>
+
                         <section>
                             <div class="panel">
                                 <div class="section-head">
@@ -1937,6 +1947,7 @@
 
             const $ = (selector) => document.querySelector(selector);
             const kpiGrid = $("#kpiGrid");
+            const resetCards = $("#resetCards");
             const accountsPanel = $("#accountsPanel");
             const accountsTableBody = $("#accountsTableBody");
             const quickStats = $("#quickStats");
@@ -2364,8 +2375,6 @@
             </div>
             <div class="metric-line subtle"><span>${showRemaining ? "Consumed session" : "Remaining session"}</span><span class="mono">${number(showRemaining ? effectiveSessionPercent : 100 - effectiveSessionPercent)}</span></div>
             <div class="metric-line subtle"><span>${showRemaining ? "Consumed weekly" : "Remaining weekly"}</span><span class="mono">${number(showRemaining ? account.weeklyPercent : 100 - account.weeklyPercent)}</span></div>
-            <div class="metric-line subtle"><span>Session reset</span><span class="mono">${account.sessionReset}</span></div>
-            <div class="metric-line subtle"><span>Weekly reset</span><span class="mono">${account.weeklyReset}</span></div>
             ${buildModelUsageRows(account)}
             ${account.notes ? `<div class="hint">${account.notes}</div>` : ""}
           </article>
@@ -2419,8 +2428,31 @@
                     .join("");
             }
 
+            // All accounts share the same session/weekly reset window, so we
+            // surface it once here instead of repeating it on every card.
+            // ponytail: uses the first account as the canonical source; falls
+            // back to "n/a" when no accounts are loaded yet.
+            function renderResetCards() {
+                const first = accounts[0];
+                const session = first ? first.sessionReset : "n/a";
+                const weekly = first ? first.weeklyReset : "n/a";
+                resetCards.innerHTML = `
+                    <article class="panel">
+                        <div class="eyebrow">Reset window</div>
+                        <div class="kpi-value mono">${session}</div>
+                        <div class="delta">Session limit, shared across all accounts</div>
+                    </article>
+                    <article class="panel">
+                        <div class="eyebrow">Reset window</div>
+                        <div class="kpi-value mono">${weekly}</div>
+                        <div class="delta">Weekly limit, shared across all accounts</div>
+                    </article>
+                `;
+            }
+
             function renderAll() {
                 renderKpis();
+                renderResetCards();
                 renderAccounts();
                 lastUpdated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
             }
