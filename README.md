@@ -13,8 +13,8 @@
 
 - The backend scrapes the Usage page for every configured account using Playwright (saved browser sessions), caches the results, and exposes them through a FastAPI API. The frontend is a beautifully designed HTML dashboard that reads from that API and displays everything at a glance — including per-model request counts with consistent emoji icons, tier-colored progress bars, and distinct account card accents.
 
-![](orbit_light.png)
-![](orbit_dark.png)
+![](https://github.com/user-attachments/assets/8bd4f4aa-9bc2-4afc-b80e-110cd9a58edf)
+![](https://github.com/user-attachments/assets/e162c2c0-9c94-4346-9dac-58798eaae703)
 
 
 
