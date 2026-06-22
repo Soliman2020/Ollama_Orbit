@@ -13,9 +13,12 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 # ─────────────────────────────────────────────────────────────────────────────
 
+from pathlib import Path
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from . import history
 from .collector import collect_usage, ensure_states_for_all_accounts
@@ -101,6 +104,14 @@ app.add_middleware(
     allow_origins=["http://127.0.0.1:3000", "http://localhost:3000"],
     allow_methods=["GET"],
     allow_headers=["*"],
+)
+
+# Serve the frontend dashboard. The frontend/ dir sits at the repo root,
+# one level up from this module (app/main.py -> ../frontend).
+app.mount(
+    "/frontend",
+    StaticFiles(directory=Path(__file__).resolve().parent.parent / "frontend"),
+    name="frontend",
 )
 
 
