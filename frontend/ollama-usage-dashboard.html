@@ -2438,14 +2438,14 @@
                 const weekly = first ? first.weeklyReset : "n/a";
                 resetCards.innerHTML = `
                     <article class="panel">
-                        <div class="eyebrow">Reset window</div>
+                        <div class="eyebrow">Session limit Reset window</div>
                         <div class="kpi-value mono">${session}</div>
-                        <div class="delta">Session limit, shared across all accounts</div>
+                        <div class="delta">Shared across all accounts</div>
                     </article>
                     <article class="panel">
-                        <div class="eyebrow">Reset window</div>
+                        <div class="eyebrow">Weekly limit Reset window</div>
                         <div class="kpi-value mono">${weekly}</div>
-                        <div class="delta">Weekly limit, shared across all accounts</div>
+                        <div class="delta">Shared across all accounts</div>
                     </article>
                 `;
             }
